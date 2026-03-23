@@ -1,64 +1,324 @@
-<div class="humor-ticker-box">
-    <div class="humor-content" id="joke-ticker">
-        Memuat asupan humor absurd...
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatMe</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
-    .humor-ticker-box {
-        width: 100%;
-        background: #222; /* Warna gelap agar kontras dengan header */
-        color: #ffeb3b; /* Kuning cerah khas peringatan/info */
-        overflow: hidden;
-        white-space: nowrap;
-        padding: 8px 0;
-        font-family: 'Courier New', Courier, monospace; /* Font monospace biar makin absurd */
-        font-size: 0.9rem;
-        border-bottom: 1px solid #444;
-    }
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#111;
+  color:#fff;
+}
+.light{
+  background:#fff;
+  color:#000;
+}
 
-    .humor-content {
-        display: inline-block;
-        padding-left: 100%;
-        animation: jalan-terus 25s linear infinite;
-    }
+header{
+  padding:10px;
+  text-align:center;
+  font-weight:bold;
+}
 
-    @keyframes jalan-terus {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-100%); }
-    }
+nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:#222;
+  padding:10px;
+}
+nav button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:20px;
+}
 
-    /* Berhenti saat kursor diarahkan (opsional, agar user bisa baca pelan-pelan) */
-    .humor-ticker-box:hover .humor-content {
-        animation-play-state: paused;
-        cursor: pointer;
-    }
+.page{ display:none; padding:10px; }
+.active{ display:block; }
+
+.card{
+  background:#222;
+  padding:10px;
+  border-radius:10px;
+  margin:5px 0;
+}
+
+img{ max-width:100%; border-radius:10px; }
+
+input,textarea,select{
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#0a84ff;
+  color:white;
+}
 </style>
+</head>
+
+<body>
+
+<header>ChatMe</header>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <button onclick="login()">Login Google</button>
+</div>
+
+<!-- SETUP PROFIL -->
+<div id="setupPage" class="page">
+  <h3>Buat Profil</h3>
+  <input type="file" id="photo">
+  <input id="nama" placeholder="Nama">
+  <input id="umur" placeholder="Umur">
+  <input id="bio" placeholder="Bio">
+  <select id="gender">
+    <option>Pria</option>
+    <option>Wanita</option>
+  </select>
+  <button onclick="saveProfile()">Simpan</button>
+</div>
+
+<!-- TIMELINE -->
+<div id="timeline" class="page">
+  <h3>Timeline</h3>
+  <textarea id="statusText"></textarea>
+  <button onclick="postStatus()">Publish</button>
+  <div id="statusList"></div>
+</div>
+
+<!-- TEMUKAN -->
+<div id="discover" class="page">
+  <h3>User Online</h3>
+  <div id="userList"></div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="page">
+  <h3>Pesan</h3>
+  <div id="chatBox"></div>
+  <input id="msg">
+  <button onclick="sendMsg()">Kirim</button>
+</div>
+
+<!-- PROFIL -->
+<div id="profile" class="page">
+  <h3>Profil</h3>
+  <img id="pfp" width="80">
+  <p id="info"></p>
+  <button onclick="upgrade()">Upgrade Pro</button>
+  <button onclick="toggleMode()">Dark/Light</button>
+  <button onclick="report()">Laporkan</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button onclick="show('timeline')">🏠</button>
+  <button onclick="show('discover')">🔍</button>
+  <button onclick="show('chat')">💬</button>
+  <button onclick="show('profile')">👤</button>
+</nav>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
 <script>
-    const tickerDisplay = document.getElementById('joke-ticker');
-    
-    async function fetchFreshJoke() {
-        try {
-            const resp = await fetch('https://candaan-api.vercel.app/api/text/random');
-            const data = await resp.json();
-            if(data.data) {
-                tickerDisplay.innerText = "INFO ABSURD: " + data.data + " | Klik untuk ganti baru >>";
-            }
-        } catch (e) {
-            tickerDisplay.innerText = "Gagal memuat humor, servernya lagi ikut audisi lawak...";
-        }
-    }
+// CONFIG
+const firebaseConfig = {
+ apiKey: "AIzaSyASIgjZ_hqMFTmVJfRV8JnxmbbH78wCJY0",
+ authDomain: "bbq-butuh-bantuan-ku.firebaseapp.com",
+ databaseURL: "https://bbq-butuh-bantuan-ku-default-rtdb.firebaseio.com",
+ projectId: "bbq-butuh-bantuan-ku",
+ storageBucket: "bbq-butuh-bantuan-ku.appspot.com",
+};
 
-    // Panggil saat halaman siap
-    fetchFreshJoke();
+firebase.initializeApp(firebaseConfig);
 
-    // Ganti joke setiap 25 detik (sesuai durasi animasi)
-    setInterval(fetchFreshJoke, 25000);
+let user, currentChat, msgCount=0;
 
-    // Tambahan: Klik teksnya untuk ganti joke secara manual
-    tickerDisplay.addEventListener('click', () => {
-        tickerDisplay.innerText = "Mencari lawakan lain...";
-        fetchFreshJoke();
-    });
+// LOGIN
+function login(){
+ const provider = new firebase.auth.GoogleAuthProvider();
+ firebase.auth().signInWithPopup(provider);
+}
+
+// AUTH
+firebase.auth().onAuthStateChanged(u=>{
+ if(u){
+   user=u;
+   checkProfile();
+ }
+});
+
+// CEK PROFIL
+function checkProfile(){
+ firebase.database().ref("users/"+user.uid).once("value",snap=>{
+   if(snap.exists()){
+     document.getElementById("loginPage").style.display="none";
+     show("timeline");
+     loadStatus();
+     loadUsers();
+     setOnline(true);
+   }else{
+     document.getElementById("setupPage").classList.add("active");
+   }
+ });
+}
+
+// SIMPAN PROFIL
+function saveProfile(){
+ let file=document.getElementById("photo").files[0];
+ let ref=firebase.storage().ref("pfp/"+user.uid);
+ ref.put(file).then(()=>{
+   ref.getDownloadURL().then(url=>{
+     firebase.database().ref("users/"+user.uid).set({
+       nama:nama.value,
+       umur:umur.value,
+       bio:bio.value,
+       gender:gender.value,
+       foto:url,
+       pro:false,
+       online:true
+     });
+     location.reload();
+   });
+ });
+}
+
+// STATUS
+function postStatus(){
+ let now=Date.now();
+ let last=localStorage.getItem("lastStatus")||0;
+ if(now-last<21600000) return alert("6 jam sekali!");
+
+ let id=firebase.database().ref("status").push().key;
+
+ firebase.database().ref("status/"+id).set({
+   uid:user.uid,
+   text:statusText.value,
+   time:now
+ });
+
+ localStorage.setItem("lastStatus",now);
+}
+
+// LOAD STATUS
+function loadStatus(){
+ firebase.database().ref("status").on("value",snap=>{
+   let html="";
+   snap.forEach(s=>{
+     let d=s.val();
+     if(Date.now()-d.time<86400000){
+       html+=`<div class="card">${d.text}</div>`;
+     }
+   });
+   statusList.innerHTML=html;
+ });
+}
+
+// USER ONLINE
+function loadUsers(){
+ firebase.database().ref("users").on("value",snap=>{
+   let html="";
+   snap.forEach(s=>{
+     let u=s.val();
+     if(u.online && s.key!=user.uid){
+       html+=`<div class="card" onclick="openChat('${s.key}')">
+       <img src="${u.foto}" width="50">
+       ${u.nama} (${u.umur})<br>${u.bio}
+       </div>`;
+     }
+   });
+   userList.innerHTML=html;
+ });
+}
+
+// ONLINE STATUS
+function setOnline(val){
+ firebase.database().ref("users/"+user.uid+"/online").set(val);
+ window.onbeforeunload=()=>setOnline(false);
+}
+
+// CHAT
+function openChat(uid){
+ currentChat=uid;
+ show("chat");
+
+ firebase.database().ref("messages/"+user.uid+"/"+uid).on("value",snap=>{
+   let html="";
+   snap.forEach(s=>{
+     html+=`<div>${s.val().text}</div>`;
+   });
+   chatBox.innerHTML=html;
+ });
+}
+
+// KIRIM PESAN
+function sendMsg(){
+ firebase.database().ref("users/"+user.uid).once("value",snap=>{
+   let pro=snap.val().pro;
+
+   if(!pro && msgCount>=3) return alert("Upgrade pro!");
+
+   let msgData={ text:msg.value };
+
+   firebase.database().ref("messages/"+user.uid+"/"+currentChat).push(msgData);
+   firebase.database().ref("messages/"+currentChat+"/"+user.uid).push(msgData);
+
+   msgCount++;
+ });
+}
+
+// NAV
+function show(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+// DARK MODE
+function toggleMode(){
+ document.body.classList.toggle("light");
+}
+
+// UPGRADE
+function upgrade(){
+ window.open("https://saweria.co/");
+ alert("Kirim bukti ke email admin!");
+}
+
+// REPORT
+function report(){
+ let txt=prompt("Laporan:");
+ firebase.database().ref("reports").push({
+   uid:user.uid,
+   text:txt
+ });
+ alert("Terkirim");
+}
+
+// PWA
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('service-worker.js');
+}
 </script>
+
+</body>
+</html>
