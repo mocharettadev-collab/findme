@@ -1,420 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chatMe - by movharetta Dev</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root { --p-color: #6200ee; }
-        body { font-family: 'Roboto', sans-serif; transition: background 0.3s; }
-        .dark { background-color: #121212; color: #e1e1e1; }
-        .dark .card { background-color: #1e1e1e; border-color: #333; }
-        .nav-active { color: var(--p-color) !important; }
-        .status-badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; }
-        .safe-area-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 70px); }
-        .msg-bubble { max-width: 80%; border-radius: 18px; padding: 10px 14px; margin: 4px 0; }
-        .msg-sent { background: var(--p-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .msg-rcv { background: #e0e0e0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .dark .msg-rcv { background: #333; color: #eee; }
-    </style>
-</head>
-<body class="bg-gray-50">
-
-    <div id="app" class="max-w-md mx-auto min-h-screen relative flex flex-col">
-        
-        <header class="sticky top-0 z-50 bg-white dark:bg-[#1e1e1e] border-b dark:border-zinc-800 p-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold text-purple-600">chatMe</h1>
-            <div class="flex gap-3">
-                <button onclick="toggleDarkMode()" class="material-icons-round">dark_mode</button>
-                <button onclick="showSection('info')" class="material-icons-round text-red-500">gpp_maybe</button>
-            </div>
-        </header>
-
-        <main id="content" class="flex-grow p-4 safe-area-bottom">
-            </main>
-
-        <nav id="navbar" class="hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1e1e1e] border-t dark:border-zinc-800 flex justify-around p-3 max-w-md mx-auto">
-            <button onclick="showSection('timeline')" id="nav-timeline" class="material-icons-round text-gray-400">layers</button>
-            <button onclick="showSection('discover')" id="nav-discover" class="material-icons-round text-gray-400">explore</button>
-            <button onclick="showSection('messages')" id="nav-messages" class="material-icons-round text-gray-400">forum</button>
-            <button onclick="showSection('profile')" id="nav-profile" class="material-icons-round text-gray-400">account_circle</button>
-        </nav>
+<div class="humor-ticker-box">
+    <div class="humor-content" id="joke-ticker">
+        Memuat asupan humor absurd...
     </div>
+</div>
 
-    <div id="modal" class="fixed inset-0 bg-black/50 hidden z-[100] flex items-center justify-center p-6">
-        <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl p-6 w-full max-w-xs shadow-xl" id="modal-content"></div>
-    </div>
+<style>
+    .humor-ticker-box {
+        width: 100%;
+        background: #222; /* Warna gelap agar kontras dengan header */
+        color: #ffeb3b; /* Kuning cerah khas peringatan/info */
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 8px 0;
+        font-family: 'Courier New', Courier, monospace; /* Font monospace biar makin absurd */
+        font-size: 0.9rem;
+        border-bottom: 1px solid #444;
+    }
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, serverTimestamp, update, onDisconnect, query, orderByChild, equalTo, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    .humor-content {
+        display: inline-block;
+        padding-left: 100%;
+        animation: jalan-terus 25s linear infinite;
+    }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyASIgjZ_hqMFTmVJfRV8JnxmbbH78wCJY0",
-            authDomain: "bbq-butuh-bantuan-ku.firebaseapp.com",
-            databaseURL: "https://bbq-butuh-bantuan-ku-default-rtdb.firebaseio.com",
-            projectId: "bbq-butuh-bantuan-ku",
-            storageBucket: "bbq-butuh-bantuan-ku.firebasestorage.app",
-            messagingSenderId: "1018956872787",
-            appId: "1:1018956872787:web:6056f533ae86654dc11aa6"
-        };
+    @keyframes jalan-terus {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        const provider = new GoogleAuthProvider();
+    /* Berhenti saat kursor diarahkan (opsional, agar user bisa baca pelan-pelan) */
+    .humor-ticker-box:hover .humor-content {
+        animation-play-state: paused;
+        cursor: pointer;
+    }
+</style>
 
-        let currentUser = null;
-        let userData = null;
-
-        // --- AUTH LOGIC ---
-        window.login = async () => {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                checkUser(result.user);
-            } catch (error) { alert(error.message); }
-        };
-
-        const checkUser = (user) => {
-            if (!user) { renderLogin(); return; }
-            const userRef = ref(db, 'users/' + user.uid);
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    userData = snapshot.val();
-                    currentUser = user;
-                    setUserOnline();
-                    showSection('timeline');
-                    document.getElementById('navbar').classList.remove('hidden');
-                } else {
-                    renderRegistration(user);
-                }
-            });
-        };
-
-        const setUserOnline = () => {
-            const onlineRef = ref(db, `online/${currentUser.uid}`);
-            set(onlineRef, { 
-                uid: currentUser.uid, 
-                name: userData.name, 
-                photo: userData.photo, 
-                lastSeen: serverTimestamp() 
-            });
-            onDisconnect(onlineRef).remove();
-        };
-
-        // --- UI RENDERING ---
-        const renderLogin = () => {
-            document.getElementById('navbar').classList.add('hidden');
-            document.getElementById('content').innerHTML = `
-                <div class="flex flex-col items-center justify-center h-[70vh] text-center">
-                    <div class="w-20 h-20 bg-purple-100 rounded-3xl flex items-center justify-center mb-6">
-                        <span class="material-icons-round text-4xl text-purple-600">chat</span>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Selamat Datang di chatMe</h2>
-                    <p class="text-gray-500 mb-8">Temukan teman baru dan ngobrol seru secara aman.</p>
-                    <button onclick="login()" class="w-full bg-black text-white py-4 rounded-xl font-medium flex items-center justify-center gap-3">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5">
-                        Lanjut dengan Google
-                    </button>
-                </div>
-            `;
-        };
-
-        const renderRegistration = (user) => {
-            document.getElementById('content').innerHTML = `
-                <div class="space-y-4">
-                    <h2 class="text-xl font-bold">Lengkapi Profil</h2>
-                    <input type="text" id="reg-photo" placeholder="URL Foto Profil" class="w-full p-3 border rounded-xl dark:bg-zinc-800" value="${user.photoURL}">
-                    <input type="text" id="reg-name" placeholder="Nama Lengkap" class="w-full p-3 border rounded-xl dark:bg-zinc-800" value="${user.displayName}">
-                    <div class="flex gap-2">
-                        <input type="number" id="reg-age" placeholder="Umur" class="w-1/3 p-3 border rounded-xl dark:bg-zinc-800">
-                        <select id="reg-gender" class="w-2/3 p-3 border rounded-xl dark:bg-zinc-800">
-                            <option value="Pria">Pria</option>
-                            <option value="Wanita">Wanita</option>
-                        </select>
-                    </div>
-                    <textarea id="reg-bio" placeholder="Bio singkat..." class="w-full p-3 border rounded-xl dark:bg-zinc-800"></textarea>
-                    <button onclick="saveUser()" class="w-full bg-purple-600 text-white py-4 rounded-xl font-bold">Daftar Sekarang</button>
-                </div>
-            `;
-        };
-
-        window.saveUser = () => {
-            const data = {
-                uid: auth.currentUser.uid,
-                photo: document.getElementById('reg-photo').value,
-                name: document.getElementById('reg-name').value,
-                age: document.getElementById('reg-age').value,
-                gender: document.getElementById('reg-gender').value,
-                bio: document.getElementById('reg-bio').value,
-                isPro: false,
-                msgCount: 0,
-                email: auth.currentUser.email
-            };
-            set(ref(db, 'users/' + auth.currentUser.uid), data).then(() => checkUser(auth.currentUser));
-        };
-
-        // --- NAVIGATION & SECTIONS ---
-        window.showSection = (section) => {
-            const content = document.getElementById('content');
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
-            const navBtn = document.getElementById('nav-' + section);
-            if(navBtn) navBtn.classList.add('nav-active');
-
-            switch(section) {
-                case 'timeline': renderTimeline(); break;
-                case 'discover': renderDiscover(); break;
-                case 'messages': renderMessageList(); break;
-                case 'profile': renderProfile(); break;
-                case 'info': renderSafetyInfo(); break;
+<script>
+    const tickerDisplay = document.getElementById('joke-ticker');
+    
+    async function fetchFreshJoke() {
+        try {
+            const resp = await fetch('https://candaan-api.vercel.app/api/text/random');
+            const data = await resp.json();
+            if(data.data) {
+                tickerDisplay.innerText = "INFO ABSURD: " + data.data + " | Klik untuk ganti baru >>";
             }
-        };
+        } catch (e) {
+            tickerDisplay.innerText = "Gagal memuat humor, servernya lagi ikut audisi lawak...";
+        }
+    }
 
-        // --- TIMELINE FEATURE (6h limit, 24h auto-delete) ---
-        const renderTimeline = () => {
-            document.getElementById('content').innerHTML = `
-                <div class="space-y-4">
-                    <div class="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border dark:border-zinc-800">
-                        <textarea id="status-text" placeholder="Apa yang terjadi?" class="w-full bg-transparent border-none focus:ring-0 text-lg" rows="2"></textarea>
-                        <div class="flex justify-end mt-2">
-                            <button onclick="postStatus()" class="bg-purple-600 text-white px-6 py-2 rounded-full font-medium">Publish</button>
-                        </div>
-                    </div>
-                    <div id="status-list" class="space-y-4"></div>
-                </div>
-            `;
-            
-            const statusRef = ref(db, 'status');
-            onValue(statusRef, (snapshot) => {
-                const list = document.getElementById('status-list');
-                list.innerHTML = "";
-                const now = Date.now();
-                snapshot.forEach((child) => {
-                    const s = child.val();
-                    // Auto-delete logic: skip if older than 24h
-                    if (now - s.timestamp > 86400000) return; 
-                    
-                    list.innerHTML = `
-                        <div class="bg-white dark:bg-zinc-900 p-4 rounded-2xl border dark:border-zinc-800 animate-fade-in">
-                            <div class="flex items-center gap-3 mb-2">
-                                <img src="${s.photo}" class="w-10 h-10 rounded-full object-cover">
-                                <div>
-                                    <h4 class="font-bold text-sm">${s.name}</h4>
-                                    <p class="text-[10px] text-gray-400">${new Date(s.timestamp).toLocaleTimeString()}</p>
-                                </div>
-                            </div>
-                            <p class="text-gray-700 dark:text-gray-300">${s.text}</p>
-                        </div>
-                    ` + list.innerHTML;
-                });
-            });
-        };
+    // Panggil saat halaman siap
+    fetchFreshJoke();
 
-        window.postStatus = async () => {
-            const text = document.getElementById('status-text').value;
-            if(!text) return;
+    // Ganti joke setiap 25 detik (sesuai durasi animasi)
+    setInterval(fetchFreshJoke, 25000);
 
-            // Check 6 hour limit
-            const lastPost = localStorage.getItem('last_post_time');
-            const now = Date.now();
-            if(lastPost && (now - lastPost < 21600000)) {
-                alert("Anda hanya bisa posting status setiap 6 jam sekali.");
-                return;
-            }
-
-            const newStatusRef = push(ref(db, 'status'));
-            await set(newStatusRef, {
-                uid: currentUser.uid,
-                name: userData.name,
-                photo: userData.photo,
-                text: text,
-                timestamp: serverTimestamp()
-            });
-            localStorage.setItem('last_post_time', now);
-            document.getElementById('status-text').value = "";
-        };
-
-        // --- DISCOVER FEATURE (Realtime Online) ---
-        const renderDiscover = () => {
-            document.getElementById('content').innerHTML = `<div id="online-list" class="grid grid-cols-2 gap-4"></div>`;
-            onValue(ref(db, 'online'), (snapshot) => {
-                const list = document.getElementById('online-list');
-                list.innerHTML = "";
-                snapshot.forEach((child) => {
-                    const o = child.val();
-                    // Load detail user
-                    onValue(ref(db, `users/${o.uid}`), (uSnap) => {
-                        const u = uSnap.val();
-                        if(!u) return;
-                        list.innerHTML += `
-                            <div onclick="openChat('${u.uid}', '${u.name}')" class="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border dark:border-zinc-800 relative shadow-sm">
-                                <img src="${u.photo}" class="w-full h-32 object-cover">
-                                <div class="p-3">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <h4 class="font-bold truncate text-sm">${u.name}, ${u.age}</h4>
-                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    </div>
-                                    <p class="text-[10px] text-gray-500 line-clamp-1">${u.bio}</p>
-                                    <span class="mt-2 inline-block text-[9px] px-2 py-1 rounded-md ${u.isPro ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'} font-bold">
-                                        ${u.isPro ? 'PRO MEMBER' : 'FREE USER'}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                });
-            });
-        };
-
-        // --- MESSAGING SYSTEM ---
-        window.openChat = (targetUid, targetName) => {
-            if(targetUid === currentUser.uid) return;
-            
-            // Check Free limit (3 messages)
-            if(!userData.isPro && userData.msgCount >= 3) {
-                alert("Limit pesan habis. Silakan upgrade ke PRO di profil!");
-                showSection('profile');
-                return;
-            }
-
-            const chatId = currentUser.uid < targetUid ? `${currentUser.uid}_${targetUid}` : `${targetUid}_${currentUser.uid}`;
-            
-            document.getElementById('content').innerHTML = `
-                <div class="flex flex-col h-[80vh]">
-                    <div class="flex items-center gap-3 pb-4 border-b dark:border-zinc-800">
-                        <button onclick="showSection('discover')" class="material-icons-round">arrow_back</button>
-                        <h3 class="font-bold">${targetName}</h3>
-                    </div>
-                    <div id="chat-box" class="flex-grow overflow-y-auto py-4 flex flex-col"></div>
-                    <div class="flex gap-2 pt-4 border-t dark:border-zinc-800">
-                        <input type="text" id="msg-input" placeholder="Tulis pesan..." class="flex-grow p-3 rounded-xl bg-gray-100 dark:bg-zinc-800">
-                        <button onclick="sendMessage('${chatId}', '${targetUid}')" class="bg-purple-600 text-white p-3 rounded-xl material-icons-round">send</button>
-                    </div>
-                </div>
-            `;
-
-            onValue(ref(db, `chats/${chatId}`), (snapshot) => {
-                const box = document.getElementById('chat-box');
-                box.innerHTML = "";
-                snapshot.forEach(child => {
-                    const m = child.val();
-                    const isMe = m.sender === currentUser.uid;
-                    box.innerHTML += `
-                        <div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-rcv'}">
-                            ${m.text}
-                        </div>
-                    `;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        };
-
-        window.sendMessage = async (chatId, targetUid) => {
-            const text = document.getElementById('msg-input').value;
-            if(!text) return;
-
-            const msgRef = push(ref(db, `chats/${chatId}`));
-            await set(msgRef, {
-                sender: currentUser.uid,
-                text: text,
-                timestamp: serverTimestamp()
-            });
-
-            // Update user message count
-            if(!userData.isPro) {
-                const newCount = (userData.msgCount || 0) + 1;
-                update(ref(db, `users/${currentUser.uid}`), { msgCount: newCount });
-            }
-
-            document.getElementById('msg-input').value = "";
-        };
-
-        const renderMessageList = () => {
-             document.getElementById('content').innerHTML = `
-                <div class="space-y-2">
-                    <h2 class="text-xl font-bold mb-4">Pesan Anda</h2>
-                    <p class="text-gray-400 text-sm italic">Daftar obrolan aktif akan tampil di sini.</p>
-                </div>
-             `;
-             // Simplified Message List
-        };
-
-        // --- PROFILE & SETTINGS ---
-        const renderProfile = () => {
-            document.getElementById('content').innerHTML = `
-                <div class="flex flex-col items-center py-6 text-center">
-                    <div class="relative">
-                        <img src="${userData.photo}" class="w-24 h-24 rounded-3xl object-cover border-4 border-white shadow-lg">
-                        ${userData.isPro ? '<span class="absolute -bottom-2 -right-2 bg-amber-400 text-white p-1 rounded-lg text-[10px] font-bold">PRO</span>' : ''}
-                    </div>
-                    <h2 class="text-xl font-bold mt-4">${userData.name}, ${userData.age}</h2>
-                    <p class="text-gray-500 text-sm mb-6 px-10">${userData.bio}</p>
-
-                    <div class="w-full space-y-3">
-                        ${!userData.isPro ? `
-                        <button onclick="showUpgradeModal()" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-4 rounded-2xl font-bold shadow-md">✨ Upgrade ke PRO</button>
-                        ` : ''}
-                        <button onclick="showEditProfile()" class="w-full bg-gray-100 dark:bg-zinc-800 py-4 rounded-2xl font-medium flex items-center justify-center gap-2">
-                            <span class="material-icons-round text-sm">edit</span> Edit Profil
-                        </button>
-                        <button onclick="showSection('about')" class="w-full text-left p-4 border-b dark:border-zinc-800 text-sm flex justify-between">
-                            Tentang Aplikasi <span class="material-icons-round text-gray-400">chevron_right</span>
-                        </button>
-                        <button onclick="showSection('report')" class="w-full text-left p-4 border-b dark:border-zinc-800 text-sm flex justify-between">
-                            Laporkan Masalah <span class="material-icons-round text-gray-400">chevron_right</span>
-                        </button>
-                        <button onclick="auth.signOut()" class="w-full text-red-500 py-4 font-medium">Keluar Akun</button>
-                    </div>
-                </div>
-            `;
-        };
-
-        window.showUpgradeModal = () => {
-            const modal = document.getElementById('modal');
-            const content = document.getElementById('modal-content');
-            modal.classList.remove('hidden');
-            content.innerHTML = `
-                <h3 class="font-bold text-lg mb-2">Upgrade PRO</h3>
-                <p class="text-sm text-gray-500 mb-4">Dapatkan akses kirim pesan tanpa batas dan badge spesial.</p>
-                <a href="https://saweria.co/movharetta" target="_blank" class="block w-full bg-purple-600 text-white text-center py-3 rounded-xl mb-2">Bayar via Saweria</a>
-                <p class="text-[10px] text-center text-gray-400 mb-4">Setelah bayar, kirim bukti ke email: <br><b>confirm@movharetta.dev</b></p>
-                <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full text-gray-500 text-sm font-bold">Batal</button>
-            `;
-        };
-
-        window.showEditProfile = () => { renderRegistration(currentUser); };
-
-        window.toggleDarkMode = () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-        };
-
-        const renderSafetyInfo = () => {
-            document.getElementById('content').innerHTML = `
-                <div class="space-y-4">
-                    <h2 class="text-xl font-bold text-red-500">Perhatian & Privasi</h2>
-                    <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl text-sm leading-relaxed">
-                        <p class="mb-2">1. Jangan pernah memberikan password atau info bank kepada siapapun.</p>
-                        <p class="mb-2">2. Hati-hati saat bertemu orang asing di dunia nyata.</p>
-                        <p class="mb-2">3. ChatMe tidak bertanggung jawab atas kerugian materi/non-materi.</p>
-                        <p>4. Gunakan fitur lapor jika menemukan pengguna mencurigakan.</p>
-                    </div>
-                    <button onclick="showSection('timeline')" class="w-full bg-black text-white py-3 rounded-xl">Saya Mengerti</button>
-                </div>
-            `;
-        };
-
-        // --- GLOBAL HELPER ---
-        window.showSection = showSection;
-        onAuthStateChanged(auth, checkUser);
-
-        // Init Theme
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-
-    </script>
-</body>
-</html>
+    // Tambahan: Klik teksnya untuk ganti joke secara manual
+    tickerDisplay.addEventListener('click', () => {
+        tickerDisplay.innerText = "Mencari lawakan lain...";
+        fetchFreshJoke();
+    });
+</script>
