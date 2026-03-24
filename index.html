@@ -1,1472 +1,1637 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <link rel="manifest" href="data:application/json,{&quot;short_name&quot;:&quot;ChatMe&quot;,&quot;name&quot;:&quot;ChatMe - Modern Chat PWA&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#ffffff&quot;,&quot;theme_color&quot;:&quot;#6200ee&quot;}"/>
-  <meta name="theme-color" content="#6200ee"/>
-  <title>ChatMe</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body, input, textarea, select, button {
-      font-family: 'Roboto', sans-serif;
-    }
-
-    body {
-      background: #f2f2f2;
-      color: #222;
-      transition: background 0.3s, color 0.3s;
-      line-height: 1.5;
-    }
-
-    body.dark {
-      background: #181818;
-      color: #fafafa;
-    }
-
-    body.dark main, body.dark .modal-content {
-      background: #262626;
-      color: #fafafa;
-    }
-
-    body.dark nav#bottom-nav {
-      background: #222;
-      border-top-color: #333;
-    }
-
-    body.dark nav .material-icons {
-      color: #aaa;
-    }
-
-    body.dark nav button.active .material-icons {
-      color: #bb86fc;
-    }
-
-    body.dark .btn-primary, body.dark .btn-upgrade {
-      background: #bb86fc;
-    }
-
-    body.dark input, body.dark textarea, body.dark select {
-      background: #323232;
-      color: #fafafa;
-      border-color: #444;
-    }
-
-    .centered {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .btn-primary, .btn-google, .btn-upgrade, .btn-secondary, .btn-warning {
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      margin: 6px 0;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s;
-      width: 100%;
-    }
-
-    .btn-primary {
-      background: #6200ee;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #5100cc;
-      transform: translateY(-2px);
-    }
-
-    .btn-google {
-      background: #fff;
-      color: #222;
-      border: 2px solid #ddd;
-      font-weight: bold;
-    }
-
-    .btn-google:hover {
-      border-color: #999;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .btn-upgrade {
-      background: linear-gradient(135deg, #6200ee, #bb86fc);
-      color: white;
-    }
-
-    .btn-upgrade:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(98, 0, 238, 0.3);
-    }
-
-    .btn-secondary {
-      background: #eee;
-      color: #333;
-      border: none;
-      padding: 10px 22px;
-      border-radius: 8px;
-      margin: 4px 2px;
-      width: auto;
-    }
-
-    body.dark .btn-secondary {
-      background: #333;
-      color: #fafafa;
-    }
-
-    .btn-warning {
-      background: #dd2c00;
-      color: white;
-    }
-
-    .btn-warning:hover {
-      background: #bb2700;
-    }
-
-    nav#bottom-nav {
-      position: fixed;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      background: #fff;
-      border-top: 2px solid #eee;
-      display: flex;
-      z-index: 999;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-    }
-
-    nav#bottom-nav button {
-      flex: 1;
-      background: none;
-      border: none;
-      padding: 12px 0;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    nav .material-icons {
-      font-size: 2rem;
-      color: #555;
-      transition: color 0.2s;
-    }
-
-    nav button.active .material-icons {
-      color: #6200ee;
-    }
-
-    main {
-      margin-bottom: 70px;
-    }
-
-    .nav-page {
-      display: none;
-      padding: 16px;
-      animation: slideIn 0.3s ease;
-    }
-
-    .nav-page.active {
-      display: block;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    #form-status {
-      background: white;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    body.dark #form-status {
-      background: #232323;
-    }
-
-    #form-status textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      resize: none;
-      font-family: 'Roboto', sans-serif;
-    }
-
-    body.dark #form-status textarea {
-      background: #323232;
-      color: #fafafa;
-      border-color: #444;
-    }
-
-    .form-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-    }
-
-    #char-count {
-      color: #999;
-      font-size: 0.9rem;
-    }
-
-    #status-list .status-item {
-      background: white;
-      border-radius: 10px;
-      margin: 10px 0;
-      padding: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-      border-left: 4px solid #6200ee;
-      transition: transform 0.2s;
-    }
-
-    #status-list .status-item:hover {
-      transform: translateX(4px);
-    }
-
-    body.dark #status-list .status-item {
-      background: #232323;
-      border-left-color: #bb86fc;
-    }
-
-    .status-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .status-header img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #6200ee;
-    }
-
-    .status-header b {
-      font-size: 0.95rem;
-    }
-
-    .status-header small {
-      color: #999;
-      font-size: 0.85rem;
-      margin-left: auto;
-    }
-
-    .status-text {
-      font-size: 1rem;
-      line-height: 1.4;
-      margin: 8px 0;
-      word-wrap: break-word;
-    }
-
-    #daftar-online {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .user-item {
-      background: white;
-      padding: 14px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: transform 0.2s;
-    }
-
-    .user-item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    body.dark .user-item {
-      background: #232323;
-    }
-
-    .user-item img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #6200ee;
-    }
-
-    .user-item b {
-      font-size: 1.1rem;
-    }
-
-    .user-item em {
-      color: #666;
-      font-style: italic;
-    }
-
-    body.dark .user-item em {
-      color: #aaa;
-    }
-
-    #chat-room {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 140px);
-      gap: 12px;
-    }
-
-    #chat-header {
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    body.dark #chat-header {
-      background: #232323;
-    }
-
-    #chat-header img {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    #chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .msg {
-      padding: 10px 14px;
-      border-radius: 12px;
-      max-width: 80%;
-      word-wrap: break-word;
-    }
-
-    .msg-from-me {
-      background: #6200ee;
-      color: white;
-      text-align: right;
-      align-self: flex-end;
-      border-radius: 16px 16px 4px 16px;
-    }
-
-    .msg-from-other {
-      background: #eee;
-      color: #222;
-      text-align: left;
-      align-self: flex-start;
-      border-radius: 16px 16px 16px 4px;
-    }
-
-    body.dark .msg-from-other {
-      background: #333;
-      color: #fafafa;
-    }
-
-    #form-pesan {
-      display: flex;
-      gap: 8px;
-    }
-
-    #form-pesan input {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 24px;
-      font-size: 1rem;
-    }
-
-    body.dark #form-pesan input {
-      background: #323232;
-      color: #fafafa;
-      border-color: #444;
-    }
-
-    #form-pesan button {
-      padding: 12px 16px;
-      width: auto;
-    }
-
-    #daftar-room {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .room-item {
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .room-item:hover {
-      background: #f5f5f5;
-      transform: translateX(4px);
-    }
-
-    body.dark .room-item {
-      background: #232323;
-    }
-
-    body.dark .room-item:hover {
-      background: #2d2d2d;
-    }
-
-    .room-item img {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .room-item b {
-      flex: 1;
-    }
-
-    #profil-info {
-      text-align: center;
-      padding: 24px 0;
-    }
-
-    .profil-foto {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #6200ee;
-      margin-bottom: 12px;
-    }
-
-    #profil-nama {
-      font-size: 1.5rem;
-      margin: 12px 0;
-    }
-
-    #badge-pro {
-      display: inline-block;
-      padding: 4px 12px;
-      background: linear-gradient(135deg, #ffd600, #ffb600);
-      color: #333;
-      border-radius: 16px;
-      font-weight: bold;
-      font-size: 0.9rem;
-      margin: 8px 0;
-    }
-
-    #profil-info p {
-      color: #666;
-      margin: 4px 0;
-    }
-
-    body.dark #profil-info p {
-      color: #aaa;
-    }
-
-    .switch {
-      margin: 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .switch:hover {
-      background: #f5f5f5;
-    }
-
-    body.dark .switch {
-      background: #232323;
-    }
-
-    body.dark .switch:hover {
-      background: #2d2d2d;
-    }
-
-    .switch input[type="checkbox"] {
-      cursor: pointer;
-      width: 48px;
-      height: 28px;
-      appearance: none;
-      background: #ccc;
-      border-radius: 14px;
-      outline: none;
-      position: relative;
-      transition: background 0.3s;
-    }
-
-    .switch input[type="checkbox"]:checked {
-      background: #6200ee;
-    }
-
-    .switch input[type="checkbox"]::before {
-      content: '';
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: white;
-      top: 2px;
-      left: 2px;
-      transition: left 0.3s;
-    }
-
-    .switch input[type="checkbox"]:checked::before {
-      left: 22px;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1001;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      animation: fadeIn 0.2s ease;
-    }
-
-    .modal.active {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-content {
-      background: white;
-      padding: 24px;
-      max-width: 90vw;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      animation: slideUp 0.3s ease;
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-
-    body.dark .modal-content {
-      background: #262626;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6C63FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ChatMe">
+<meta name="description" content="ChatMe - Connect with people around you">
+<link rel="manifest" href="manifest.json">
+<title>ChatMe</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getDatabase, ref, set, get, push, onValue, off, update, remove, query, orderByChild, equalTo, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyASIgjZ_hqMFTmVJfRV8JnxmbbH78wCJY0",
+    authDomain: "bbq-butuh-bantuan-ku.firebaseapp.com",
+    databaseURL: "https://bbq-butuh-bantuan-ku-default-rtdb.firebaseio.com",
+    projectId: "bbq-butuh-bantuan-ku",
+    storageBucket: "bbq-butuh-bantuan-ku.firebasestorage.app",
+    messagingSenderId: "1018956872787",
+    appId: "1:1018956872787:web:6056f533ae86654dc11aa6",
+    measurementId: "G-FHDPFLXFCF"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const googleProvider = new GoogleAuthProvider();
+
+  // ============================
+  // GLOBAL STATE
+  // ============================
+  let currentUser = null;
+  let currentProfile = null;
+  let activeChat = null;
+  let darkMode = localStorage.getItem('darkMode') === 'true';
+  let onlineListeners = [];
+  let messageListeners = {};
+  let statusListeners = [];
+  let profilePhotoLocal = null;
+
+  // ============================
+  // DARK MODE
+  // ============================
+  function applyDarkMode() {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }
+  applyDarkMode();
+
+  // ============================
+  // AUTH STATE
+  // ============================
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      const profileSnap = await get(ref(db, `users/${user.uid}`));
+      if (profileSnap.exists()) {
+        currentProfile = profileSnap.val();
+        // Restore local photo
+        const localPhoto = localStorage.getItem(`photo_${user.uid}`);
+        if (localPhoto) currentProfile.photoLocal = localPhoto;
+        showApp();
+        setOnlineStatus(true);
+      } else {
+        showRegister();
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+    } else {
+      currentUser = null;
+      currentProfile = null;
+      setOnlineStatus(false);
+      showLogin();
+    }
+  });
+
+  // ============================
+  // ONLINE PRESENCE
+  // ============================
+  function setOnlineStatus(online) {
+    if (!currentUser) return;
+    const userRef = ref(db, `users/${currentUser.uid}`);
+    const presenceRef = ref(db, `presence/${currentUser.uid}`);
+    if (online) {
+      update(presenceRef, { online: true, lastSeen: serverTimestamp() });
+      onDisconnect(presenceRef).update({ online: false, lastSeen: serverTimestamp() });
+    } else {
+      update(presenceRef, { online: false, lastSeen: serverTimestamp() });
+    }
+  }
+
+  // ============================
+  // SHOW SCREENS
+  // ============================
+  function showLogin() {
+    document.getElementById('screen-login').style.display = 'flex';
+    document.getElementById('screen-register').style.display = 'none';
+    document.getElementById('screen-app').style.display = 'none';
+  }
+
+  function showRegister() {
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-register').style.display = 'flex';
+    document.getElementById('screen-app').style.display = 'none';
+  }
+
+  function showApp() {
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-register').style.display = 'none';
+    document.getElementById('screen-app').style.display = 'flex';
+    navigateTo('timeline');
+    loadProfile();
+  }
+
+  // ============================
+  // NAVIGATION
+  // ============================
+  function navigateTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`page-${page}`)?.classList.add('active');
+    document.querySelector(`[data-nav="${page}"]`)?.classList.add('active');
+
+    if (page === 'timeline') loadTimeline();
+    if (page === 'discover') loadDiscover();
+    if (page === 'messages') loadMessageList();
+    if (page === 'profile') loadProfile();
+  }
+
+  window.navigateTo = navigateTo;
+
+  // ============================
+  // GOOGLE LOGIN
+  // ============================
+  window.loginWithGoogle = async () => {
+    try {
+      document.getElementById('login-btn').disabled = true;
+      document.getElementById('login-btn').innerHTML = '<span class="spinner"></span> Masuk...';
+      await signInWithPopup(auth, googleProvider);
+    } catch (e) {
+      showToast('Login gagal: ' + e.message, 'error');
+      document.getElementById('login-btn').disabled = false;
+      document.getElementById('login-btn').innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Masuk dengan Google';
+    }
+  };
+
+  // ============================
+  // REGISTER
+  // ============================
+  window.pickRegisterPhoto = () => document.getElementById('reg-photo-input').click();
+
+  window.handleRegPhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      profilePhotoLocal = ev.target.result;
+      document.getElementById('reg-avatar').style.backgroundImage = `url(${profilePhotoLocal})`;
+      document.getElementById('reg-avatar').innerHTML = '';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.submitRegister = async () => {
+    const name = document.getElementById('reg-name').value.trim();
+    const age = document.getElementById('reg-age').value.trim();
+    const bio = document.getElementById('reg-bio').value.trim();
+    const gender = document.getElementById('reg-gender').value;
+
+    if (!name || !age || !gender) return showToast('Nama, umur, dan gender wajib diisi!', 'error');
+    if (isNaN(age) || age < 13 || age > 100) return showToast('Umur tidak valid (13-100)', 'error');
+
+    const btn = document.getElementById('reg-btn');
+    btn.disabled = true; btn.textContent = 'Mendaftar...';
+
+    try {
+      const uid = currentUser.uid;
+      const photoToSave = profilePhotoLocal || currentUser.photoURL || '';
+      if (profilePhotoLocal) localStorage.setItem(`photo_${uid}`, profilePhotoLocal);
+
+      const profile = {
+        uid, name, age: parseInt(age), bio: bio || '', gender,
+        isPro: false,
+        createdAt: Date.now(),
+        photoURL: currentUser.photoURL || ''
+      };
+      await set(ref(db, `users/${uid}`), profile);
+      currentProfile = { ...profile, photoLocal: profilePhotoLocal };
+      showApp();
+      setOnlineStatus(true);
+    } catch (e) {
+      showToast('Daftar gagal: ' + e.message, 'error');
+      btn.disabled = false; btn.textContent = 'Daftar Sekarang';
+    }
+  };
+
+  // ============================
+  // TIMELINE
+  // ============================
+  function loadTimeline() {
+    const container = document.getElementById('timeline-feed');
+    container.innerHTML = '<div class="loading-pulse"></div>';
+
+    const statusRef = ref(db, 'statuses');
+    onValue(statusRef, async (snap) => {
+      const now = Date.now();
+      const statuses = [];
+      if (snap.exists()) {
+        snap.forEach(child => {
+          const s = child.val();
+          if (now - s.createdAt < 86400000) { // 24 hours
+            statuses.push({ id: child.key, ...s });
+          } else {
+            remove(ref(db, `statuses/${child.key}`));
+          }
+        });
+      }
+      statuses.sort((a, b) => b.createdAt - a.createdAt);
+
+      if (statuses.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><p>Belum ada status. Jadilah yang pertama!</p></div>';
+        return;
+      }
+
+      let html = '';
+      for (const s of statuses) {
+        const userSnap = await get(ref(db, `users/${s.uid}`));
+        const u = userSnap.exists() ? userSnap.val() : { name: 'User', gender: '' };
+        const localPhoto = localStorage.getItem(`photo_${s.uid}`);
+        const avatarSrc = localPhoto || u.photoURL || '';
+        const timeAgo = getTimeAgo(s.createdAt);
+        const isOwn = s.uid === currentUser?.uid;
+        html += `
+          <div class="status-card">
+            <div class="status-card-header">
+              <div class="avatar-sm" style="${avatarSrc ? `background-image:url(${avatarSrc});background-size:cover` : `background:${getGradient(u.name)}`}">
+                ${avatarSrc ? '' : u.name[0]?.toUpperCase()}
+              </div>
+              <div class="status-meta">
+                <span class="status-name">${u.name}</span>
+                <span class="status-time">${timeAgo}</span>
+              </div>
+              ${isOwn ? `<button class="del-status-btn" onclick="deleteStatus('${s.id}')">×</button>` : ''}
+            </div>
+            <p class="status-text">${escHtml(s.text)}</p>
+          </div>`;
+      }
+      container.innerHTML = html;
+    }, { onlyOnce: false });
+  }
+
+  window.publishStatus = async () => {
+    const text = document.getElementById('status-input').value.trim();
+    if (!text) return showToast('Tulis sesuatu dulu!', 'error');
+    if (text.length > 300) return showToast('Maksimal 300 karakter', 'error');
+
+    // Check 6-hour cooldown
+    const uid = currentUser.uid;
+    const lastStatusSnap = await get(query(ref(db, 'statuses'), orderByChild('uid'), equalTo(uid)));
+    if (lastStatusSnap.exists()) {
+      let lastTime = 0;
+      lastStatusSnap.forEach(c => { if (c.val().createdAt > lastTime) lastTime = c.val().createdAt; });
+      if (Date.now() - lastTime < 6 * 3600 * 1000) {
+        const remaining = Math.ceil((6 * 3600 * 1000 - (Date.now() - lastTime)) / 3600000 * 60);
+        return showToast(`Tunggu ${remaining} menit lagi untuk posting status`, 'error');
       }
     }
 
-    .modal-content h3, .modal-content h4 {
-      margin-bottom: 16px;
-      color: #6200ee;
+    const btn = document.getElementById('publish-btn');
+    btn.disabled = true;
+    await push(ref(db, 'statuses'), { uid, text, createdAt: Date.now() });
+    document.getElementById('status-input').value = '';
+    document.getElementById('char-count').textContent = '0/300';
+    btn.disabled = false;
+    showToast('Status dipublish! 🎉');
+  };
+
+  window.deleteStatus = async (id) => {
+    await remove(ref(db, `statuses/${id}`));
+    showToast('Status dihapus');
+  };
+
+  // ============================
+  // DISCOVER
+  // ============================
+  function loadDiscover() {
+    const container = document.getElementById('discover-list');
+    container.innerHTML = '<div class="loading-pulse"></div>';
+
+    const presenceRef = ref(db, 'presence');
+    onValue(presenceRef, async (presSnap) => {
+      const usersRef = ref(db, 'users');
+      const usersSnap = await get(usersRef);
+      const onlineUsers = [];
+
+      if (presSnap.exists() && usersSnap.exists()) {
+        presSnap.forEach(child => {
+          const pres = child.val();
+          const uid = child.key;
+          if (pres.online && uid !== currentUser?.uid) {
+            const userData = usersSnap.child(uid).val();
+            if (userData) onlineUsers.push({ uid, ...userData });
+          }
+        });
+      }
+
+      if (onlineUsers.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>Tidak ada pengguna online saat ini</p></div>';
+        return;
+      }
+
+      let html = '';
+      for (const u of onlineUsers) {
+        const localPhoto = localStorage.getItem(`photo_${u.uid}`);
+        const avatarSrc = localPhoto || u.photoURL || '';
+        html += `
+          <div class="user-card" onclick="openChat('${u.uid}', '${escHtml(u.name)}')">
+            <div class="user-card-avatar" style="${avatarSrc ? `background-image:url(${avatarSrc});background-size:cover` : `background:${getGradient(u.name)}`}">
+              ${avatarSrc ? '' : u.name[0]?.toUpperCase()}
+              <div class="online-dot"></div>
+            </div>
+            <div class="user-card-info">
+              <div class="user-card-name">${escHtml(u.name)} ${u.isPro ? '<span class="badge-pro">PRO</span>' : ''}</div>
+              <div class="user-card-detail">${u.age} tahun • ${u.gender}</div>
+              <div class="user-card-bio">${escHtml(u.bio || 'Tidak ada bio')}</div>
+            </div>
+            <button class="chat-btn" onclick="event.stopPropagation();openChat('${u.uid}', '${escHtml(u.name)}')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </button>
+          </div>`;
+      }
+      container.innerHTML = html;
+    });
+  }
+
+  // ============================
+  // MESSAGES
+  // ============================
+  function loadMessageList() {
+    const container = document.getElementById('chat-list');
+    container.innerHTML = '<div class="loading-pulse"></div>';
+
+    // Get all conversations where current user is involved
+    const convsRef = ref(db, 'conversations');
+    onValue(convsRef, async (snap) => {
+      if (!snap.exists()) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Belum ada pesan. Temukan pengguna online!</p></div>';
+        return;
+      }
+      const uid = currentUser.uid;
+      const convs = [];
+      snap.forEach(child => {
+        const key = child.key;
+        if (key.includes(uid)) {
+          const data = child.val();
+          convs.push({ id: key, ...data });
+        }
+      });
+
+      if (convs.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Belum ada pesan. Temukan pengguna online!</p></div>';
+        return;
+      }
+
+      convs.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
+
+      let html = '';
+      for (const conv of convs) {
+        const otherUid = conv.id.split('_').find(id => id !== uid);
+        const userSnap = await get(ref(db, `users/${otherUid}`));
+        if (!userSnap.exists()) continue;
+        const u = userSnap.val();
+        const localPhoto = localStorage.getItem(`photo_${otherUid}`);
+        const avatarSrc = localPhoto || u.photoURL || '';
+        const presSnap = await get(ref(db, `presence/${otherUid}`));
+        const isOnline = presSnap.exists() && presSnap.val().online;
+        const unread = (conv.unread && conv.unread[uid]) || 0;
+
+        html += `
+          <div class="chat-item" onclick="openChat('${otherUid}', '${escHtml(u.name)}')">
+            <div class="chat-item-avatar" style="${avatarSrc ? `background-image:url(${avatarSrc});background-size:cover` : `background:${getGradient(u.name)}`}">
+              ${avatarSrc ? '' : u.name[0]?.toUpperCase()}
+              ${isOnline ? '<div class="online-dot"></div>' : ''}
+            </div>
+            <div class="chat-item-info">
+              <div class="chat-item-name">${escHtml(u.name)}</div>
+              <div class="chat-item-last">${escHtml(conv.lastMsg || 'Mulai percakapan')}</div>
+            </div>
+            ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
+          </div>`;
+      }
+      container.innerHTML = html || '<div class="empty-state"><div class="empty-icon">💬</div><p>Belum ada pesan</p></div>';
+    });
+  }
+
+  window.openChat = async (targetUid, targetName) => {
+    // Check message limit for non-pro
+    if (!currentProfile?.isPro) {
+      const sentKey = `sent_${currentUser.uid}`;
+      const sentCount = parseInt(localStorage.getItem(sentKey) || '0');
+      if (sentCount >= 5) {
+        showToast('Limit pesan tercapai! Upgrade Pro untuk pesan tak terbatas', 'error');
+        showProModal();
+        return;
+      }
     }
 
-    body.dark .modal-content h3, body.dark .modal-content h4 {
-      color: #bb86fc;
+    activeChat = { uid: targetUid, name: targetName };
+    const convId = [currentUser.uid, targetUid].sort().join('_');
+
+    // Mark as read
+    await update(ref(db, `conversations/${convId}/unread`), { [currentUser.uid]: 0 });
+
+    // Show chat view
+    document.getElementById('chat-view').style.display = 'flex';
+    document.getElementById('chat-view-name').textContent = targetName;
+
+    // Load presence for target
+    const presSnap = await get(ref(db, `presence/${targetUid}`));
+    document.getElementById('chat-view-status').textContent = (presSnap.exists() && presSnap.val().online) ? 'Online' : 'Offline';
+
+    const localPhoto = localStorage.getItem(`photo_${targetUid}`);
+    const userSnap = await get(ref(db, `users/${targetUid}`));
+    const u = userSnap.exists() ? userSnap.val() : {};
+    const avatarSrc = localPhoto || u.photoURL || '';
+    const chatAvatar = document.getElementById('chat-view-avatar');
+    if (avatarSrc) {
+      chatAvatar.style.backgroundImage = `url(${avatarSrc})`;
+      chatAvatar.style.backgroundSize = 'cover';
+      chatAvatar.innerHTML = '';
+    } else {
+      chatAvatar.style.backgroundImage = '';
+      chatAvatar.style.background = getGradient(targetName);
+      chatAvatar.innerHTML = targetName[0]?.toUpperCase();
     }
 
-    .modal-content label {
-      display: block;
-      margin: 12px 0 6px 0;
-      font-weight: bold;
+    loadChatMessages(convId);
+    navigateTo('messages');
+  };
+
+  function loadChatMessages(convId) {
+    const container = document.getElementById('chat-messages');
+    container.innerHTML = '';
+
+    const msgsRef = ref(db, `messages/${convId}`);
+    onValue(msgsRef, (snap) => {
+      container.innerHTML = '';
+      if (!snap.exists()) return;
+      snap.forEach(child => {
+        const msg = child.val();
+        const isSelf = msg.from === currentUser.uid;
+        const time = new Date(msg.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const div = document.createElement('div');
+        div.className = `msg ${isSelf ? 'msg-out' : 'msg-in'}`;
+        div.innerHTML = `<div class="msg-bubble">${escHtml(msg.text)}<span class="msg-time">${time}</span></div>`;
+        container.appendChild(div);
+      });
+      container.scrollTop = container.scrollHeight;
+    });
+  }
+
+  window.sendMessage = async () => {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text || !activeChat) return;
+
+    // Check non-pro limit
+    if (!currentProfile?.isPro) {
+      const sentKey = `sent_${currentUser.uid}`;
+      const sentCount = parseInt(localStorage.getItem(sentKey) || '0');
+      if (sentCount >= 5) {
+        showToast('Limit 5 pesan! Upgrade Pro untuk lanjut', 'error');
+        showProModal();
+        return;
+      }
+      localStorage.setItem(sentKey, sentCount + 1);
     }
 
-    .modal-content input, .modal-content textarea, .modal-content select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-family: 'Roboto', sans-serif;
+    const convId = [currentUser.uid, activeChat.uid].sort().join('_');
+    input.value = '';
+
+    await push(ref(db, `messages/${convId}`), {
+      from: currentUser.uid,
+      to: activeChat.uid,
+      text,
+      time: Date.now()
+    });
+
+    await update(ref(db, `conversations/${convId}`), {
+      lastMsg: text,
+      lastTime: Date.now(),
+      [`unread/${activeChat.uid}`]: (await get(ref(db, `conversations/${convId}/unread/${activeChat.uid}`))).val() + 1 || 1
+    });
+  };
+
+  window.closeChatView = () => {
+    document.getElementById('chat-view').style.display = 'none';
+    activeChat = null;
+  };
+
+  // ============================
+  // PROFILE
+  // ============================
+  function loadProfile() {
+    if (!currentProfile) return;
+    const localPhoto = localStorage.getItem(`photo_${currentUser.uid}`);
+    const avatarSrc = localPhoto || currentProfile.photoURL || '';
+    const profileAvatar = document.getElementById('profile-avatar');
+
+    if (avatarSrc) {
+      profileAvatar.style.backgroundImage = `url(${avatarSrc})`;
+      profileAvatar.style.backgroundSize = 'cover';
+      profileAvatar.innerHTML = '';
+    } else {
+      profileAvatar.style.backgroundImage = '';
+      profileAvatar.style.background = getGradient(currentProfile.name);
+      profileAvatar.innerHTML = currentProfile.name[0]?.toUpperCase();
     }
 
-    body.dark .modal-content input, body.dark .modal-content textarea, body.dark .modal-content select {
-      background: #323232;
-      color: #fafafa;
-      border-color: #444;
-    }
+    document.getElementById('profile-name').textContent = currentProfile.name;
+    document.getElementById('profile-age').textContent = `${currentProfile.age} tahun`;
+    document.getElementById('profile-bio').textContent = currentProfile.bio || 'Tidak ada bio';
+    document.getElementById('profile-gender').textContent = currentProfile.gender;
+    document.getElementById('profile-badge').style.display = currentProfile.isPro ? 'inline-flex' : 'none';
+  }
 
-    .modal-content ul {
-      padding-left: 20px;
-      line-height: 1.8;
+  // Edit Profile
+  window.openEditProfile = () => {
+    document.getElementById('edit-name').value = currentProfile.name;
+    document.getElementById('edit-age').value = currentProfile.age;
+    document.getElementById('edit-bio').value = currentProfile.bio || '';
+    document.getElementById('edit-gender').value = currentProfile.gender;
+    const localPhoto = localStorage.getItem(`photo_${currentUser.uid}`);
+    const avatarSrc = localPhoto || currentProfile.photoURL || '';
+    const editAvatar = document.getElementById('edit-avatar');
+    if (avatarSrc) {
+      editAvatar.style.backgroundImage = `url(${avatarSrc})`;
+      editAvatar.style.backgroundSize = 'cover';
+      editAvatar.innerHTML = '';
+    } else {
+      editAvatar.style.background = getGradient(currentProfile.name);
+      editAvatar.innerHTML = currentProfile.name[0]?.toUpperCase();
     }
+    showModal('modal-edit-profile');
+  };
 
-    .hidden {
-      display: none !important;
-    }
+  window.pickEditPhoto = () => document.getElementById('edit-photo-input').click();
 
-    hr {
-      border: none;
-      border-top: 1px solid #eee;
-    }
+  window.handleEditPhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      profilePhotoLocal = ev.target.result;
+      const editAvatar = document.getElementById('edit-avatar');
+      editAvatar.style.backgroundImage = `url(${profilePhotoLocal})`;
+      editAvatar.style.backgroundSize = 'cover';
+      editAvatar.innerHTML = '';
+    };
+    reader.readAsDataURL(file);
+  };
 
-    body.dark hr {
-      border-top-color: #333;
+  window.saveProfile = async () => {
+    const name = document.getElementById('edit-name').value.trim();
+    const age = document.getElementById('edit-age').value.trim();
+    const bio = document.getElementById('edit-bio').value.trim();
+    const gender = document.getElementById('edit-gender').value;
+    if (!name || !age || !gender) return showToast('Data tidak boleh kosong', 'error');
+
+    const btn = document.getElementById('save-profile-btn');
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+    try {
+      const updates = { name, age: parseInt(age), bio, gender };
+      await update(ref(db, `users/${currentUser.uid}`), updates);
+      if (profilePhotoLocal) localStorage.setItem(`photo_${currentUser.uid}`, profilePhotoLocal);
+      currentProfile = { ...currentProfile, ...updates };
+      if (profilePhotoLocal) currentProfile.photoLocal = profilePhotoLocal;
+      closeModal('modal-edit-profile');
+      loadProfile();
+      showToast('Profil disimpan! ✨');
+    } catch (e) {
+      showToast('Gagal menyimpan: ' + e.message, 'error');
     }
-  </style>
+    btn.disabled = false; btn.textContent = 'Simpan';
+  };
+
+  // ============================
+  // PRO UPGRADE
+  // ============================
+  function showProModal() {
+    showModal('modal-pro');
+  }
+  window.showProModal = showProModal;
+
+  window.openSaweria = () => {
+    window.open('https://saweria.co/donate', '_blank');
+  };
+
+  window.confirmUpgradePro = async () => {
+    const email = document.getElementById('pro-email').value.trim();
+    if (!email || !email.includes('@')) return showToast('Email tidak valid', 'error');
+
+    await push(ref(db, 'proRequests'), {
+      uid: currentUser.uid,
+      email,
+      name: currentProfile.name,
+      requestedAt: Date.now()
+    });
+
+    // For demo: auto-approve after confirmation
+    await update(ref(db, `users/${currentUser.uid}`), { isPro: true });
+    currentProfile.isPro = true;
+    localStorage.removeItem(`sent_${currentUser.uid}`);
+    closeModal('modal-pro');
+    loadProfile();
+    showToast('Selamat! Kamu sekarang PRO 🎉');
+  };
+
+  // ============================
+  // REPORT
+  // ============================
+  window.submitReport = async () => {
+    const text = document.getElementById('report-text').value.trim();
+    if (!text) return showToast('Tulis laporan dulu', 'error');
+    await push(ref(db, 'reports'), {
+      uid: currentUser.uid,
+      name: currentProfile.name,
+      text,
+      time: Date.now()
+    });
+    document.getElementById('report-text').value = '';
+    closeModal('modal-report');
+    showToast('Laporan terkirim, terima kasih!');
+  };
+
+  // ============================
+  // LOGOUT & DELETE
+  // ============================
+  window.logoutUser = async () => {
+    if (!confirm('Yakin ingin keluar?')) return;
+    setOnlineStatus(false);
+    await signOut(auth);
+    showToast('Berhasil keluar 👋');
+  };
+
+  window.deleteAccount = async () => {
+    if (!confirm('Hapus akun PERMANEN? Data tidak bisa dipulihkan!')) return;
+    if (!confirm('Konfirmasi sekali lagi: Hapus akun?')) return;
+    try {
+      setOnlineStatus(false);
+      await remove(ref(db, `users/${currentUser.uid}`));
+      await remove(ref(db, `presence/${currentUser.uid}`));
+      localStorage.removeItem(`photo_${currentUser.uid}`);
+      localStorage.removeItem(`sent_${currentUser.uid}`);
+      await deleteUser(auth.currentUser);
+      showToast('Akun dihapus');
+    } catch (e) {
+      showToast('Gagal hapus akun: ' + e.message, 'error');
+    }
+  };
+
+  // ============================
+  // DARK MODE TOGGLE
+  // ============================
+  window.toggleDarkMode = () => {
+    darkMode = !darkMode;
+    localStorage.setItem('darkMode', darkMode);
+    applyDarkMode();
+    document.getElementById('dark-toggle').textContent = darkMode ? '☀️ Mode Terang' : '🌙 Mode Gelap';
+  };
+
+  // ============================
+  // MODAL HELPERS
+  // ============================
+  window.showModal = (id) => {
+    document.getElementById(id).style.display = 'flex';
+    setTimeout(() => document.getElementById(id).classList.add('visible'), 10);
+  };
+  window.closeModal = (id) => {
+    document.getElementById(id).classList.remove('visible');
+    setTimeout(() => document.getElementById(id).style.display = 'none', 300);
+  };
+
+  // ============================
+  // TOAST
+  // ============================
+  function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast toast-${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  window.showToast = showToast;
+
+  // ============================
+  // UTILS
+  // ============================
+  function getTimeAgo(ts) {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'Baru saja';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} menit lalu`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} jam lalu`;
+    return 'Kemarin';
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function getGradient(name) {
+    const colors = [
+      'linear-gradient(135deg,#6C63FF,#4ECDC4)',
+      'linear-gradient(135deg,#FF6B6B,#FFE66D)',
+      'linear-gradient(135deg,#4ECDC4,#45B7D1)',
+      'linear-gradient(135deg,#A8E6CF,#DCEDC1)',
+      'linear-gradient(135deg,#FF8B94,#FFAAA5)',
+      'linear-gradient(135deg,#B4A7D6,#D5A6BD)',
+    ];
+    const i = (name?.charCodeAt(0) || 0) % colors.length;
+    return colors[i];
+  }
+  window.getGradient = getGradient;
+
+  // Char count
+  window.updateCharCount = () => {
+    const val = document.getElementById('status-input')?.value.length || 0;
+    const el = document.getElementById('char-count');
+    if (el) el.textContent = `${val}/300`;
+  };
+
+  // Enter to send
+  window.handleMsgKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+</script>
+
+<style>
+/* ========================
+   CSS VARIABLES
+======================== */
+:root {
+  --primary: #6C63FF;
+  --primary-light: #8B85FF;
+  --primary-dark: #4A42D4;
+  --accent: #FF6B6B;
+  --accent2: #4ECDC4;
+  --bg: #F8F7FF;
+  --bg2: #FFFFFF;
+  --bg3: #F0EFFF;
+  --surface: #FFFFFF;
+  --surface2: #F5F4FF;
+  --text: #1A1830;
+  --text2: #6B6880;
+  --text3: #9E9CB8;
+  --border: #E8E6FF;
+  --shadow: rgba(108,99,255,0.12);
+  --shadow-deep: rgba(108,99,255,0.25);
+  --nav-height: 70px;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --pro-gold: #FFB347;
+}
+
+[data-theme="dark"] {
+  --bg: #0D0C1D;
+  --bg2: #151426;
+  --bg3: #1C1B30;
+  --surface: #1C1B30;
+  --surface2: #252440;
+  --text: #F0EEFF;
+  --text2: #A09DC0;
+  --text3: #6B6880;
+  --border: #2D2B50;
+  --shadow: rgba(108,99,255,0.2);
+  --shadow-deep: rgba(108,99,255,0.4);
+}
+
+/* ========================
+   RESET & BASE
+======================== */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); }
+button { cursor:pointer; font-family:'Nunito',sans-serif; border:none; outline:none; }
+input, textarea, select { font-family:'Nunito',sans-serif; outline:none; }
+
+/* ========================
+   SCREEN LOGIN
+======================== */
+#screen-login {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; background:var(--bg); padding:24px;
+  background-image: radial-gradient(circle at 20% 80%, rgba(108,99,255,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(78,205,196,0.08) 0%, transparent 50%);
+}
+.login-logo {
+  width:90px; height:90px; border-radius:26px;
+  background:linear-gradient(135deg,#6C63FF,#4ECDC4);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:#fff;
+  box-shadow: 0 20px 60px rgba(108,99,255,0.4);
+  margin-bottom:28px; animation:logoFloat 3s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-8px); }
+}
+.login-title { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--text); text-align:center; }
+.login-title span { background:linear-gradient(90deg,#6C63FF,#4ECDC4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.login-sub { color:var(--text2); font-size:15px; text-align:center; margin:8px 0 40px; }
+#login-btn {
+  display:flex; align-items:center; gap:12px; padding:16px 32px;
+  background:var(--surface); border:2px solid var(--border);
+  border-radius:var(--radius); font-size:16px; font-weight:700; color:var(--text);
+  box-shadow:0 4px 20px var(--shadow); transition:all 0.2s; width:100%; max-width:320px; justify-content:center;
+}
+#login-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px var(--shadow-deep); }
+#login-btn:disabled { opacity:0.7; transform:none; }
+
+/* ========================
+   SCREEN REGISTER
+======================== */
+#screen-register {
+  display:none; flex-direction:column; min-height:100vh;
+  background:var(--bg); overflow-y:auto; padding:24px;
+  padding-bottom:40px;
+}
+.reg-header { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin:20px 0 4px; color:var(--text); }
+.reg-sub { color:var(--text2); font-size:14px; margin-bottom:28px; }
+#reg-avatar {
+  width:96px; height:96px; border-radius:50%;
+  background:linear-gradient(135deg,#6C63FF,#4ECDC4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; font-weight:800; color:#fff;
+  margin:0 auto 8px; position:relative; cursor:pointer;
+  border:3px solid var(--primary); background-size:cover;
+  box-shadow:0 8px 24px var(--shadow-deep);
+}
+.reg-avatar-hint { text-align:center; color:var(--text2); font-size:13px; margin-bottom:24px; }
+.input-group { margin-bottom:16px; }
+.input-group label { font-size:13px; font-weight:700; color:var(--text2); display:block; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.input-group input, .input-group textarea, .input-group select {
+  width:100%; padding:14px 16px; border:2px solid var(--border);
+  border-radius:var(--radius-sm); background:var(--surface); color:var(--text);
+  font-size:15px; transition:border 0.2s;
+}
+.input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color:var(--primary); }
+.input-group textarea { resize:none; height:80px; }
+.input-group select { appearance:none; -webkit-appearance:none; }
+.btn-primary {
+  width:100%; padding:16px; background:linear-gradient(135deg,#6C63FF,#4ECDC4);
+  color:#fff; border-radius:var(--radius); font-size:17px; font-weight:800;
+  box-shadow:0 8px 24px var(--shadow-deep); transition:all 0.2s; margin-top:8px;
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 32px var(--shadow-deep); }
+.btn-primary:disabled { opacity:0.7; transform:none; }
+
+/* ========================
+   SCREEN APP
+======================== */
+#screen-app {
+  display:none; flex-direction:column; height:100vh;
+  background:var(--bg); position:relative; overflow:hidden;
+}
+.pages { flex:1; overflow:hidden; position:relative; }
+.page { display:none; flex-direction:column; height:100%; }
+.page.active { display:flex; }
+
+/* ========================
+   BOTTOM NAV
+======================== */
+.bottom-nav {
+  height:var(--nav-height); background:var(--surface);
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 8px; box-shadow:0 -4px 20px var(--shadow);
+  position:relative; z-index:50;
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; padding:8px 4px; cursor:pointer; position:relative;
+  border:none; background:transparent; color:var(--text3); transition:all 0.2s;
+  border-radius:var(--radius-sm);
+}
+.nav-item svg { width:24px; height:24px; transition:all 0.2s; }
+.nav-item span { font-size:10px; font-weight:700; transition:all 0.2s; }
+.nav-item.active { color:var(--primary); }
+.nav-item.active svg { transform:scale(1.1); }
+.nav-item::before {
+  content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:0; height:3px; background:var(--primary); border-radius:3px 3px 0 0; transition:width 0.3s;
+}
+.nav-item.active::before { width:24px; }
+
+/* ========================
+   PAGE HEADER
+======================== */
+.page-header {
+  padding:16px 20px 12px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.page-header h1 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--text); }
+.page-header p { font-size:13px; color:var(--text2); margin-top:2px; }
+
+/* ========================
+   PAGE TIMELINE
+======================== */
+#page-timeline { overflow-y:auto; }
+.status-composer {
+  background:var(--surface); margin:16px; border-radius:var(--radius);
+  padding:16px; box-shadow:0 4px 16px var(--shadow); border:1px solid var(--border);
+}
+.status-composer textarea {
+  width:100%; border:none; background:var(--bg3); border-radius:var(--radius-sm);
+  padding:12px 14px; resize:none; height:80px; color:var(--text); font-size:14px;
+  transition:background 0.2s;
+}
+.status-composer textarea:focus { background:var(--surface2); }
+.composer-footer { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+.char-count { font-size:12px; color:var(--text3); }
+.publish-btn {
+  background:linear-gradient(135deg,#6C63FF,#4ECDC4); color:#fff;
+  padding:10px 20px; border-radius:20px; font-size:13px; font-weight:700;
+  box-shadow:0 4px 12px var(--shadow);
+}
+#timeline-feed { padding:0 16px 16px; }
+.status-card {
+  background:var(--surface); border-radius:var(--radius); padding:16px;
+  margin-bottom:12px; box-shadow:0 2px 12px var(--shadow); border:1px solid var(--border);
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.status-card-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.avatar-sm {
+  width:38px; height:38px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:15px; color:#fff; flex-shrink:0;
+  background-size:cover; background-position:center;
+}
+.status-meta { flex:1; }
+.status-name { font-size:14px; font-weight:700; display:block; color:var(--text); }
+.status-time { font-size:12px; color:var(--text3); }
+.del-status-btn { background:none; color:var(--text3); font-size:20px; line-height:1; padding:4px 8px; border-radius:6px; }
+.del-status-btn:hover { background:var(--bg3); color:var(--accent); }
+.status-text { font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap; }
+
+/* ========================
+   PAGE DISCOVER
+======================== */
+#page-discover { overflow:hidden; display:flex; flex-direction:column; }
+.discover-scroll { flex:1; overflow-y:auto; padding:12px 16px; }
+.online-header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.online-dot-lg { width:10px; height:10px; background:#4CAF50; border-radius:50%; animation:pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.6;transform:scale(1.2);} }
+.online-header span { font-size:13px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
+.user-card {
+  background:var(--surface); border-radius:var(--radius); padding:14px;
+  margin-bottom:10px; box-shadow:0 2px 12px var(--shadow); border:1px solid var(--border);
+  display:flex; align-items:center; gap:12px; cursor:pointer;
+  transition:all 0.2s; animation:slideUp 0.3s ease;
+}
+.user-card:hover { transform:translateX(4px); box-shadow:0 4px 20px var(--shadow-deep); }
+.user-card-avatar {
+  width:56px; height:56px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:22px; color:#fff; position:relative;
+  background-size:cover; background-position:center;
+}
+.online-dot {
+  width:12px; height:12px; background:#4CAF50; border:2px solid var(--surface);
+  border-radius:50%; position:absolute; bottom:2px; right:2px;
+}
+.user-card-info { flex:1; min-width:0; }
+.user-card-name { font-size:15px; font-weight:700; color:var(--text); }
+.user-card-detail { font-size:12px; color:var(--text2); margin:2px 0; }
+.user-card-bio { font-size:13px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.badge-pro { background:linear-gradient(90deg,#FFB347,#FF6B6B); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; text-transform:uppercase; letter-spacing:0.5px; margin-left:4px; }
+.chat-btn {
+  width:40px; height:40px; border-radius:50%; background:var(--primary);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; box-shadow:0 4px 12px var(--shadow-deep);
+}
+
+/* ========================
+   PAGE MESSAGES
+======================== */
+#page-messages { overflow:hidden; display:flex; flex-direction:column; position:relative; }
+.chat-list-scroll { flex:1; overflow-y:auto; }
+.chat-item {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; position:relative;
+}
+.chat-item:hover { background:var(--bg3); }
+.chat-item-avatar {
+  width:50px; height:50px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:20px; color:#fff; position:relative;
+  background-size:cover; background-position:center;
+}
+.chat-item-info { flex:1; min-width:0; }
+.chat-item-name { font-size:15px; font-weight:700; color:var(--text); }
+.chat-item-last { font-size:13px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.unread-badge { background:var(--primary); color:#fff; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+
+/* Chat View */
+#chat-view {
+  display:none; position:absolute; inset:0; z-index:100;
+  flex-direction:column; background:var(--bg);
+}
+.chat-view-header {
+  background:var(--surface); padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+  box-shadow:0 2px 12px var(--shadow);
+}
+.chat-back-btn { background:none; color:var(--text2); padding:4px 8px 4px 0; font-size:22px; }
+#chat-view-avatar {
+  width:40px; height:40px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:16px; color:#fff;
+  background-size:cover; background-position:center;
+}
+.chat-view-info { flex:1; }
+#chat-view-name { font-size:16px; font-weight:700; color:var(--text); }
+#chat-view-status { font-size:12px; color:#4CAF50; }
+#chat-messages { flex:1; overflow-y:auto; padding:16px; }
+.msg { display:flex; margin-bottom:8px; }
+.msg-out { justify-content:flex-end; }
+.msg-in { justify-content:flex-start; }
+.msg-bubble {
+  max-width:72%; padding:10px 14px; border-radius:18px;
+  font-size:14px; line-height:1.5; position:relative;
+}
+.msg-out .msg-bubble { background:linear-gradient(135deg,#6C63FF,#4ECDC4); color:#fff; border-bottom-right-radius:4px; }
+.msg-in .msg-bubble { background:var(--surface); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
+.msg-time { font-size:10px; opacity:0.7; margin-left:8px; }
+.chat-input-bar {
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:12px 16px; display:flex; gap:10px; align-items:center;
+}
+.chat-input-bar input {
+  flex:1; background:var(--bg3); border:2px solid var(--border);
+  border-radius:24px; padding:10px 16px; font-size:14px; color:var(--text);
+  transition:border 0.2s;
+}
+.chat-input-bar input:focus { border-color:var(--primary); }
+.send-btn {
+  width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#6C63FF,#4ECDC4);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px var(--shadow-deep); flex-shrink:0;
+}
+
+/* ========================
+   PAGE PROFILE
+======================== */
+#page-profile { overflow-y:auto; }
+.profile-hero {
+  background:linear-gradient(135deg,#6C63FF 0%,#4ECDC4 100%);
+  padding:32px 20px 24px; display:flex; flex-direction:column; align-items:center;
+  position:relative; overflow:hidden;
+}
+.profile-hero::before {
+  content:''; position:absolute; inset:-50%;
+  background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);
+  animation:heroShimmer 6s ease-in-out infinite;
+}
+@keyframes heroShimmer { 0%,100%{transform:translate(-20%,-20%);} 50%{transform:translate(20%,20%);} }
+#profile-avatar {
+  width:90px; height:90px; border-radius:50%;
+  background:rgba(255,255,255,0.3); backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:36px; color:#fff;
+  border:3px solid rgba(255,255,255,0.5);
+  background-size:cover; background-position:center;
+  position:relative; z-index:1;
+}
+#profile-badge { display:none; background:linear-gradient(90deg,#FFB347,#FF6B6B); color:#fff; font-size:10px; font-weight:800; padding:3px 10px; border-radius:10px; margin:8px 0 0; text-transform:uppercase; letter-spacing:1px; }
+#profile-name { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:#fff; margin-top:10px; text-align:center; position:relative; z-index:1; }
+.profile-detail-row { display:flex; gap:16px; margin-top:6px; position:relative; z-index:1; }
+.profile-detail-row span { font-size:13px; color:rgba(255,255,255,0.85); }
+.profile-bio { font-size:14px; color:rgba(255,255,255,0.8); text-align:center; margin-top:8px; position:relative; z-index:1; max-width:280px; }
+.profile-menu { padding:16px; }
+.menu-section { margin-bottom:8px; }
+.menu-section-title { font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin:0 4px 8px; }
+.menu-card { background:var(--surface); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); box-shadow:0 2px 12px var(--shadow); }
+.menu-item {
+  display:flex; align-items:center; gap:14px; padding:15px 16px;
+  cursor:pointer; transition:background 0.15s; border-bottom:1px solid var(--border);
+  background:none; width:100%; text-align:left; color:var(--text);
+}
+.menu-item:last-child { border-bottom:none; }
+.menu-item:hover { background:var(--bg3); }
+.menu-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.menu-item-text { flex:1; }
+.menu-item-text strong { display:block; font-size:15px; font-weight:700; }
+.menu-item-text small { font-size:12px; color:var(--text2); }
+.menu-item-arrow { color:var(--text3); font-size:18px; }
+.menu-danger .menu-icon { background:#FFF0F0; }
+.menu-danger strong { color:#E53935; }
+
+/* ========================
+   MODALS
+======================== */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  backdrop-filter:blur(4px); z-index:200; align-items:flex-end; justify-content:center;
+  opacity:0; transition:opacity 0.3s;
+}
+.modal-overlay.visible { opacity:1; }
+.modal-sheet {
+  background:var(--surface); border-radius:24px 24px 0 0; width:100%; max-width:480px;
+  padding:24px; max-height:90vh; overflow-y:auto;
+  transform:translateY(100%); transition:transform 0.3s ease;
+}
+.modal-overlay.visible .modal-sheet { transform:translateY(0); }
+.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 20px; }
+.modal-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--text); margin-bottom:4px; }
+.modal-sub { font-size:14px; color:var(--text2); margin-bottom:20px; }
+.modal-close-btn { position:absolute; right:20px; top:20px; background:var(--bg3); border:none; width:32px; height:32px; border-radius:50%; font-size:18px; color:var(--text2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+/* Edit Profile Modal */
+#edit-avatar {
+  width:80px; height:80px; border-radius:50%;
+  background:linear-gradient(135deg,#6C63FF,#4ECDC4);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:30px; color:#fff;
+  margin:0 auto 8px; cursor:pointer; border:3px solid var(--primary);
+  background-size:cover; background-position:center;
+}
+.edit-avatar-hint { text-align:center; font-size:12px; color:var(--primary); font-weight:700; margin-bottom:16px; cursor:pointer; }
+
+/* Pro Modal */
+.pro-features { background:var(--bg3); border-radius:var(--radius-sm); padding:16px; margin:16px 0; }
+.pro-feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; color:var(--text); }
+.pro-feature-item:last-child { margin-bottom:0; }
+.pro-feature-item::before { content:'✨'; font-size:16px; }
+.pro-price { text-align:center; font-size:22px; font-weight:800; color:var(--primary); margin:12px 0; }
+.pro-price small { font-size:13px; color:var(--text2); font-weight:400; }
+.btn-saweria {
+  width:100%; padding:14px; border-radius:var(--radius);
+  background:linear-gradient(135deg,#FF6B6B,#FFB347); color:#fff;
+  font-size:16px; font-weight:800; margin-bottom:12px;
+  box-shadow:0 6px 20px rgba(255,107,107,0.4);
+}
+.btn-confirm {
+  width:100%; padding:14px; border-radius:var(--radius);
+  background:linear-gradient(135deg,#6C63FF,#4ECDC4); color:#fff;
+  font-size:15px; font-weight:700;
+}
+
+/* About Modal */
+.about-logo { text-align:center; margin:16px 0; }
+.about-logo-icon { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg,#6C63FF,#4ECDC4); display:inline-flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:26px; font-weight:800; color:#fff; box-shadow:0 12px 40px rgba(108,99,255,0.4); }
+.about-name { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--text); margin-top:12px; }
+.about-version { font-size:13px; color:var(--text2); }
+.about-desc { font-size:14px; color:var(--text2); line-height:1.7; margin:16px 0; text-align:center; }
+.about-dev { background:var(--bg3); border-radius:var(--radius-sm); padding:14px; text-align:center; }
+.about-dev strong { display:block; font-size:15px; color:var(--primary); }
+.about-dev span { font-size:13px; color:var(--text2); }
+
+/* Privacy Modal */
+.privacy-section { margin-bottom:16px; }
+.privacy-section h3 { font-size:15px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.privacy-section p { font-size:13px; color:var(--text2); line-height:1.6; }
+
+/* ========================
+   LOADING & EMPTY
+======================== */
+.loading-pulse {
+  height:80px; background:linear-gradient(90deg, var(--surface2) 25%, var(--bg3) 50%, var(--surface2) 75%);
+  background-size:200% 100%; border-radius:var(--radius);
+  animation:pulse 1.5s infinite; margin-bottom:12px;
+}
+@keyframes pulse { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.empty-state { text-align:center; padding:60px 20px; }
+.empty-icon { font-size:48px; margin-bottom:16px; opacity:0.5; }
+.empty-state p { color:var(--text2); font-size:15px; }
+
+/* ========================
+   TOAST
+======================== */
+.toast {
+  position:fixed; bottom:calc(var(--nav-height) + 16px); left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:var(--bg); padding:12px 20px; border-radius:24px;
+  font-size:14px; font-weight:700; opacity:0; transition:all 0.3s; z-index:1000;
+  max-width:320px; text-align:center; white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast-error { background:#E53935; color:#fff; }
+.toast-success { background:var(--primary); color:#fff; }
+
+/* ========================
+   SPINNER
+======================== */
+.spinner { width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; display:inline-block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ========================
+   SCROLLBAR
+======================== */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+</style>
 </head>
 <body>
-  <!-- Splash & Login -->
-  <div id="splash" class="centered">
-    <h1 style="font-size:3rem;color:#6200ee;margin-bottom:2rem;">ChatMe</h1>
-    <button id="google-login" class="btn-google">🔐 Masuk dengan Google</button>
-  </div>
 
-  <!-- Modal: Lengkapi Profil -->
-  <div id="modal-profil" class="modal">
-    <div class="modal-content">
-      <h3>Lengkapi Profil Anda</h3>
-      <label>Foto Profil</label>
-      <input type="file" accept="image/*" id="foto-profil" required/>
-      <label>Nama</label>
-      <input type="text" id="nama" placeholder="Nama lengkap" required/>
-      <label>Umur</label>
-      <input type="number" id="umur" placeholder="Umur" min="10" max="99" required/>
-      <label>Bio</label>
-      <textarea id="bio" placeholder="Bio singkat Anda" required></textarea>
-      <label>Gender</label>
-      <select id="gender" required>
-        <option value="">Pilih Gender</option>
-        <option value="pria">Pria</option>
-        <option value="wanita">Wanita</option>
-      </select>
-      <button id="daftar-profil" class="btn-primary" style="width:100%;margin-top:1rem;">Daftar</button>
+<!-- ======================== LOGIN SCREEN ======================== -->
+<div id="screen-login" style="display:none">
+  <div class="login-logo">C</div>
+  <h1 class="login-title">Chat<span>Me</span></h1>
+  <p class="login-sub">Terhubung dengan orang-orang di sekitarmu ✨</p>
+  <button id="login-btn" onclick="loginWithGoogle()">
+    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Masuk dengan Google
+  </button>
+</div>
+
+<!-- ======================== REGISTER SCREEN ======================== -->
+<div id="screen-register" style="display:none">
+  <div style="background:linear-gradient(135deg,#6C63FF,#4ECDC4);padding:20px 20px 28px;color:#fff;">
+    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-top:12px;">Buat Profil ✨</div>
+    <div style="font-size:14px;opacity:0.85;margin-top:4px;">Lengkapi profil untuk mulai chatting</div>
+  </div>
+  <div style="padding:24px;overflow-y:auto;flex:1;">
+    <div id="reg-avatar" onclick="pickRegisterPhoto()">?</div>
+    <p class="reg-avatar-hint">📷 Tap untuk upload foto profil</p>
+    <input type="file" id="reg-photo-input" accept="image/*" style="display:none" onchange="handleRegPhotoChange(event)">
+
+    <div class="input-group">
+      <label>Nama Lengkap</label>
+      <input id="reg-name" type="text" placeholder="Nama kamu...">
     </div>
+    <div class="input-group">
+      <label>Umur</label>
+      <input id="reg-age" type="number" placeholder="Umur (13-100)" min="13" max="100">
+    </div>
+    <div class="input-group">
+      <label>Bio</label>
+      <textarea id="reg-bio" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
+    </div>
+    <div class="input-group">
+      <label>Gender</label>
+      <select id="reg-gender">
+        <option value="">— Pilih Gender —</option>
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="reg-btn" onclick="submitRegister()">Daftar Sekarang 🚀</button>
   </div>
+</div>
 
-  <!-- Main App -->
-  <div id="main-app" class="hidden">
-    <nav id="bottom-nav">
-      <button data-nav="timeline" class="active" title="Timeline"><span class="material-icons">public</span></button>
-      <button data-nav="temukan" title="Temukan"><span class="material-icons">person_search</span></button>
-      <button data-nav="pesan" title="Pesan"><span class="material-icons">chat</span></button>
-      <button data-nav="profil" title="Profil"><span class="material-icons">person</span></button>
-    </nav>
-    
-    <main>
-      <!-- Timeline -->
-      <section id="timeline" class="nav-page active">
-        <form id="form-status">
-          <textarea id="status-input" maxlength="150" placeholder="Tulis status (maks 150 karakter)..." required></textarea>
-          <div class="form-footer">
-            <span id="char-count">0/150</span>
-            <button type="submit" class="btn-primary">Publish</button>
+<!-- ======================== APP SCREEN ======================== -->
+<div id="screen-app" style="display:none">
+  <div class="pages">
+
+    <!-- TIMELINE -->
+    <div class="page" id="page-timeline">
+      <div class="page-header">
+        <h1>Timeline 🌟</h1>
+        <p>Status semua pengguna · Hapus otomatis 24 jam</p>
+      </div>
+      <div style="overflow-y:auto;flex:1;">
+        <div class="status-composer">
+          <textarea id="status-input" placeholder="Ada apa hari ini? ✨" maxlength="300" oninput="updateCharCount()"></textarea>
+          <div class="composer-footer">
+            <span class="char-count" id="char-count">0/300</span>
+            <button class="publish-btn" id="publish-btn" onclick="publishStatus()">Publish →</button>
           </div>
-        </form>
-        <div id="status-list"></div>
-      </section>
-
-      <!-- Temukan Users Online -->
-      <section id="temukan" class="nav-page">
-        <h2>Pengguna Online</h2>
-        <div id="daftar-online"></div>
-      </section>
-
-      <!-- Pesan -->
-      <section id="pesan" class="nav-page">
-        <div id="daftar-room"></div>
-        <div id="chat-room" class="hidden">
-          <div id="chat-header"></div>
-          <div id="chat-messages"></div>
-          <form id="form-pesan">
-            <input type="text" id="pesan-input" placeholder="Ketik pesan..."/>
-            <button type="submit" class="btn-primary">Kirim</button>
-          </form>
         </div>
-      </section>
+        <div id="timeline-feed"><div class="loading-pulse"></div></div>
+      </div>
+    </div>
 
-      <!-- Profil -->
-      <section id="profil" class="nav-page">
-        <div id="profil-info">
-          <img id="profil-foto" class="profil-foto" src="" alt="Foto Profil"/>
-          <h2 id="profil-nama"></h2>
-          <div id="badge-pro"></div>
-          <p><span id="profil-umur"></span> • <span id="profil-gender"></span></p>
-          <p id="profil-bio"></p>
+    <!-- DISCOVER -->
+    <div class="page" id="page-discover">
+      <div class="page-header">
+        <h1>Temukan 🔍</h1>
+        <p>Pengguna yang sedang online</p>
+      </div>
+      <div class="discover-scroll">
+        <div class="online-header">
+          <div class="online-dot-lg"></div>
+          <span>Online Sekarang</span>
         </div>
-        <button id="upgrade-pro" class="btn-upgrade">⭐ Upgrade PRO</button>
-        <button id="edit-profil" class="btn-secondary">✏️ Edit Profil</button>
-        
-        <hr style="margin:1rem 0;"/>
-        
-        <label class="switch">
-          <input type="checkbox" id="mode-dark"/>
-          <span>Mode Gelap / Terang</span>
-        </label>
-        
-        <button id="btn-perhatian" class="btn-secondary">⚠️ Perhatian</button>
-        <button id="btn-tentang" class="btn-secondary">ℹ️ Tentang Aplikasi</button>
-        <button id="btn-laporkan" class="btn-secondary">🚩 Laporkan</button>
-        
-        <hr style="margin:1rem 0;"/>
-        
-        <button id="btn-hapus-akun" class="btn-warning">🗑��� Hapus Akun</button>
-        <button id="btn-keluar" class="btn-secondary">🚪 Keluar</button>
-      </section>
-    </main>
+        <div id="discover-list"><div class="loading-pulse"></div></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="page" id="page-messages">
+      <div class="page-header">
+        <h1>Pesan 💬</h1>
+        <p>Chat realtime dengan pengguna lain</p>
+      </div>
+      <div class="chat-list-scroll" id="chat-list">
+        <div class="loading-pulse" style="margin:16px"></div>
+      </div>
+
+      <!-- Chat View (overlay) -->
+      <div id="chat-view">
+        <div class="chat-view-header">
+          <button class="chat-back-btn" onclick="closeChatView()">‹</button>
+          <div id="chat-view-avatar" style="background:linear-gradient(135deg,#6C63FF,#4ECDC4)"></div>
+          <div class="chat-view-info">
+            <div id="chat-view-name">—</div>
+            <div id="chat-view-status">Online</div>
+          </div>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input-bar">
+          <input id="msg-input" type="text" placeholder="Tulis pesan..." onkeydown="handleMsgKey(event)">
+          <button class="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="profile-hero">
+        <div id="profile-avatar"></div>
+        <span id="profile-badge">⭐ PRO</span>
+        <div id="profile-name">—</div>
+        <div class="profile-detail-row">
+          <span id="profile-age">—</span>
+          <span>·</span>
+          <span id="profile-gender">—</span>
+        </div>
+        <div class="profile-bio" id="profile-bio">—</div>
+      </div>
+
+      <div class="profile-menu">
+        <div class="menu-section">
+          <div class="menu-section-title">Akun</div>
+          <div class="menu-card">
+            <button class="menu-item" onclick="showProModal()">
+              <div class="menu-icon" style="background:#FFF3E0">⭐</div>
+              <div class="menu-item-text"><strong>Upgrade PRO</strong><small>Pesan tak terbatas & lebih</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item" onclick="openEditProfile()">
+              <div class="menu-icon" style="background:#E8F5E9">✏️</div>
+              <div class="menu-item-text"><strong>Edit Profil</strong><small>Foto, nama, bio, dll</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-section-title">Preferensi</div>
+          <div class="menu-card">
+            <button class="menu-item" onclick="toggleDarkMode()" id="dark-toggle">
+              <div class="menu-icon" style="background:#EDE7F6">🌙</div>
+              <div class="menu-item-text"><strong id="dark-toggle-text">Mode Gelap</strong><small>Ganti tema tampilan</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-section-title">Info</div>
+          <div class="menu-card">
+            <button class="menu-item" onclick="showModal('modal-privacy')">
+              <div class="menu-icon" style="background:#E3F2FD">⚠️</div>
+              <div class="menu-item-text"><strong>Perhatian Penting</strong><small>Privasi & keamanan</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item" onclick="showModal('modal-about')">
+              <div class="menu-icon" style="background:#F3E5F5">ℹ️</div>
+              <div class="menu-item-text"><strong>Tentang Aplikasi</strong><small>ChatMe by Mocharetta Dev</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item" onclick="showModal('modal-report')">
+              <div class="menu-icon" style="background:#FFF8E1">🚩</div>
+              <div class="menu-item-text"><strong>Laporkan</strong><small>Kirim laporan masalah</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-section-title">Akun</div>
+          <div class="menu-card">
+            <button class="menu-item" onclick="logoutUser()">
+              <div class="menu-icon" style="background:#E8F5E9">🚪</div>
+              <div class="menu-item-text"><strong>Keluar</strong><small>Logout dari akun ini</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item menu-danger" onclick="deleteAccount()">
+              <div class="menu-icon">🗑️</div>
+              <div class="menu-item-text"><strong>Hapus Akun</strong><small>Hapus permanen semua data</small></div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+          </div>
+        </div>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Global Modal -->
-  <div id="global-modal" class="modal"></div>
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item" data-nav="timeline" onclick="navigateTo('timeline')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span>Timeline</span>
+    </button>
+    <button class="nav-item" data-nav="discover" onclick="navigateTo('discover')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Temukan</span>
+    </button>
+    <button class="nav-item" data-nav="messages" onclick="navigateTo('messages')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Pesan</span>
+    </button>
+    <button class="nav-item" data-nav="profile" onclick="navigateTo('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profil</span>
+    </button>
+  </nav>
+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+<!-- ======================== MODALS ======================== -->
 
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyASIgjZ_hqMFTmVJfRV8JnxmbbH78wCJY0",
-      authDomain: "bbq-butuh-bantuan-ku.firebaseapp.com",
-      databaseURL: "https://bbq-butuh-bantuan-ku-default-rtdb.firebaseio.com",
-      projectId: "bbq-butuh-bantuan-ku",
-      storageBucket: "bbq-butuh-bantuan-ku.appspot.com",
-      messagingSenderId: "1018956872787",
-      appId: "1:1018956872787:web:6056f533ae86654dc11aa6",
-      measurementId: "G-FHDPFLXFCF"
-    };
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="modal-edit-profile" onclick="if(event.target===this)closeModal('modal-edit-profile')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-handle"></div>
+    <button class="modal-close-btn" onclick="closeModal('modal-edit-profile')">×</button>
+    <div class="modal-title">Edit Profil</div>
+    <div class="modal-sub">Perbarui informasi profilmu</div>
+    <div id="edit-avatar" onclick="pickEditPhoto()"></div>
+    <p class="edit-avatar-hint">📷 Tap untuk ganti foto</p>
+    <input type="file" id="edit-photo-input" accept="image/*" style="display:none" onchange="handleEditPhotoChange(event)">
+    <div class="input-group"><label>Nama</label><input id="edit-name" type="text"></div>
+    <div class="input-group"><label>Umur</label><input id="edit-age" type="number" min="13" max="100"></div>
+    <div class="input-group"><label>Bio</label><textarea id="edit-bio"></textarea></div>
+    <div class="input-group"><label>Gender</label>
+      <select id="edit-gender">
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="save-profile-btn" onclick="saveProfile()">Simpan ✓</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+<!-- PRO Modal -->
+<div class="modal-overlay" id="modal-pro" onclick="if(event.target===this)closeModal('modal-pro')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-handle"></div>
+    <button class="modal-close-btn" onclick="closeModal('modal-pro')">×</button>
+    <div style="text-align:center;margin-bottom:4px;">⭐</div>
+    <div class="modal-title" style="text-align:center;">Upgrade ke PRO</div>
+    <div class="modal-sub" style="text-align:center;">Nikmati pengalaman chatting tak terbatas</div>
+    <div class="pro-features">
+      <div class="pro-feature-item">Kirim pesan tak terbatas</div>
+      <div class="pro-feature-item">Badge PRO di profil</div>
+      <div class="pro-feature-item">Prioritas di halaman Temukan</div>
+      <div class="pro-feature-item">Support pengembang 💜</div>
+    </div>
+    <div class="pro-price">Rp 15.000 <small>/ bulan</small></div>
+    <button class="btn-saweria" onclick="openSaweria()">☕ Bayar via Saweria</button>
+    <div class="input-group"><label>Email konfirmasi pembayaran</label><input id="pro-email" type="email" placeholder="email@kamu.com"></div>
+    <button class="btn-confirm" onclick="confirmUpgradePro()">✓ Konfirmasi Upgrade PRO</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
 
-    // Global Variables
-    let currentUser = null;
-    let currentProfile = null;
-    let currentRoomId = null;
-    let currentChatUid = null;
-    const PESAN_LIMIT = 5;
-    const STATUS_INTERVAL = 21600000; // 6 jam
-    const STATUS_TTL = 86400000; // 24 jam
+<!-- Privacy Modal -->
+<div class="modal-overlay" id="modal-privacy" onclick="if(event.target===this)closeModal('modal-privacy')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-handle"></div>
+    <button class="modal-close-btn" onclick="closeModal('modal-privacy')">×</button>
+    <div class="modal-title">⚠️ Perhatian Penting</div>
+    <div style="height:16px"></div>
+    <div class="privacy-section">
+      <h3>🔒 Jaga Privasi Kamu</h3>
+      <p>Jangan bagikan informasi pribadi seperti alamat rumah, nomor telepon, atau data keuangan kepada orang yang baru dikenal di platform ini.</p>
+    </div>
+    <div class="privacy-section">
+      <h3>⚠️ Waspadai Penipuan</h3>
+      <p>Hati-hati dengan pengguna yang meminta uang, link mencurigakan, atau informasi sensitif. Laporkan segera jika menemukan aktivitas mencurigakan.</p>
+    </div>
+    <div class="privacy-section">
+      <h3>🧒 Perlindungan Anak</h3>
+      <p>Aplikasi ini hanya untuk pengguna 13 tahun ke atas. Orang tua diharapkan mengawasi penggunaan oleh anak-anak.</p>
+    </div>
+    <div class="privacy-section">
+      <h3>💬 Tanggung Jawab Konten</h3>
+      <p>Pengguna bertanggung jawab atas konten yang diposting. Konten yang melanggar hukum atau norma sosial dapat dilaporkan dan dihapus.</p>
+    </div>
+    <div class="privacy-section">
+      <h3>🤝 Berinteraksi dengan Aman</h3>
+      <p>Temui orang yang dikenal secara online hanya di tempat umum. Percayakan intuisimu — jika terasa tidak nyaman, segera akhiri percakapan.</p>
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-privacy')" style="margin-top:8px">Saya Mengerti ✓</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
 
-    // Helpers
-    const el = id => document.getElementById(id);
-    const q = sel => document.querySelector(sel);
-    const qs = sel => document.querySelectorAll(sel);
+<!-- About Modal -->
+<div class="modal-overlay" id="modal-about" onclick="if(event.target===this)closeModal('modal-about')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-handle"></div>
+    <button class="modal-close-btn" onclick="closeModal('modal-about')">×</button>
+    <div class="about-logo">
+      <div class="about-logo-icon">C</div>
+      <div class="about-name">ChatMe</div>
+      <div class="about-version">Versi 1.0.0 • 2025</div>
+    </div>
+    <p class="about-desc">ChatMe adalah platform percakapan sosial yang menghubungkan kamu dengan orang-orang di sekitar. Temukan teman baru, berbagi cerita, dan nikmati percakapan realtime yang menyenangkan.</p>
+    <div class="about-dev">
+      <strong>Mocharetta Dev, LLC.</strong>
+      <span>Crafting digital experiences with ❤️</span>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text3);">
+      Dibuat dengan penuh cinta & kopi ☕<br>
+      © 2025 Mocharetta Dev, LLC. All rights reserved.
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-about')" style="margin-top:20px">Tutup</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
 
-    // ============= PWA & SW =============
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('data:text/javascript,self.addEventListener("install",e=>e.waitUntil(self.skipWaiting()));self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));').catch(e => console.log('SW error:', e));
-    }
+<!-- Report Modal -->
+<div class="modal-overlay" id="modal-report" onclick="if(event.target===this)closeModal('modal-report')">
+  <div class="modal-sheet" style="position:relative;">
+    <div class="modal-handle"></div>
+    <button class="modal-close-btn" onclick="closeModal('modal-report')">×</button>
+    <div class="modal-title">🚩 Laporkan Masalah</div>
+    <div class="modal-sub">Bantu kami menjaga ChatMe tetap aman dan nyaman</div>
+    <div class="input-group">
+      <label>Isi Laporan</label>
+      <textarea id="report-text" style="height:120px" placeholder="Ceritakan masalah yang kamu alami..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="submitReport()">Kirim Laporan 📨</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
 
-    // ============= DARK MODE =============
-    el('mode-dark').addEventListener('change', e => {
-      const isDark = e.target.checked;
-      document.body.classList.toggle('dark', isDark);
-      localStorage.setItem('dark-mode', isDark ? '1' : '0');
-    });
+<!-- INSTALL BANNER -->
+<div id="install-banner" style="display:none;position:fixed;bottom:calc(var(--nav-height)+16px);left:16px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;z-index:500;align-items:center;gap:12px;box-shadow:0 8px 30px var(--shadow-deep);">
+  <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#6C63FF,#4ECDC4);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:16px;flex-shrink:0;">C</div>
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:700;color:var(--text);">Install ChatMe</div>
+    <div style="font-size:12px;color:var(--text2);">Tambah ke layar utama</div>
+  </div>
+  <button onclick="dismissInstall()" style="background:none;color:var(--text3);font-size:20px;padding:4px;">×</button>
+  <button onclick="installPWA()" style="background:var(--primary);color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;">Install</button>
+</div>
 
-    // Load dark mode preference
-    if (localStorage.getItem('dark-mode') === '1') {
-      el('mode-dark').checked = true;
-      document.body.classList.add('dark');
-    }
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-    // ============= MODAL SYSTEM =============
-    function showModal(html) {
-      const m = el('global-modal');
-      m.innerHTML = `<div class="modal-content">${html}</div>`;
-      m.classList.add('active');
-      m.onclick = e => {
-        if (e.target === m) closeModal();
-      };
-    }
+<script>
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 
-    function closeModal() {
-      el('global-modal').classList.remove('active');
-    }
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 3 seconds if not dismissed
+  setTimeout(() => {
+    if (deferredPrompt) showInstallBanner();
+  }, 3000);
+});
 
-    // ============= AUTH & LOGIN =============
-    el('google-login').onclick = () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(e => alert('Error login: ' + e.message));
-    };
+function showInstallBanner() {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+}
+window.installPWA = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+};
+window.dismissInstall = () => {
+  document.getElementById('install-banner').style.display = 'none';
+  deferredPrompt = null;
+};
 
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        currentUser = user;
-        try {
-          const snap = await db.ref(`users/${user.uid}`).once('value');
-          if (snap.exists() && snap.val().nama) {
-            currentProfile = snap.val();
-            onAppStart();
-          } else {
-            el('modal-profil').classList.add('modal', 'active');
-          }
-          updateLastOnline();
-          setInterval(updateLastOnline, 150000); // 2.5 menit
-        } catch (e) {
-          alert('Error loading profile: ' + e.message);
-        }
-      } else {
-        el('main-app').classList.add('hidden');
-        el('splash').style.display = 'flex';
-      }
-    });
+// Update dark toggle text on load
+document.addEventListener('DOMContentLoaded', () => {
+  const darkMode = localStorage.getItem('darkMode') === 'true';
+  const toggleEl = document.getElementById('dark-toggle-text');
+  if (toggleEl) toggleEl.textContent = darkMode ? 'Mode Terang' : 'Mode Gelap';
+  const toggleBtn = document.getElementById('dark-toggle');
+  if (toggleBtn) {
+    const icon = toggleBtn.querySelector('.menu-icon');
+    if (icon) icon.textContent = darkMode ? '☀️' : '🌙';
+  }
+});
+// Override toggleDarkMode to also update text/icon
+const origToggle = window.toggleDarkMode;
+window.toggleDarkMode = function() {
+  origToggle && origToggle();
+  const darkMode = localStorage.getItem('darkMode') === 'true';
+  const toggleEl = document.getElementById('dark-toggle-text');
+  if (toggleEl) toggleEl.textContent = darkMode ? 'Mode Terang' : 'Mode Gelap';
+  const toggleBtn = document.getElementById('dark-toggle');
+  if (toggleBtn) {
+    const icon = toggleBtn.querySelector('.menu-icon');
+    if (icon) icon.textContent = darkMode ? '☀️' : '🌙';
+  }
+};
+</script>
 
-    function updateLastOnline() {
-      if (currentUser) {
-        db.ref(`users/${currentUser.uid}/lastOnline`).set(Date.now());
-      }
-    }
-
-    // ============= PROFILE SETUP =============
-    el('daftar-profil').onclick = async function() {
-      const nama = el('nama').value.trim();
-      const umur = parseInt(el('umur').value);
-      const bio = el('bio').value.trim();
-      const gender = el('gender').value;
-      const file = el('foto-profil').files[0];
-
-      if (!file || !nama || !umur || !bio || !gender) {
-        return alert('Isi semua data!');
-      }
-
-      const reader = new FileReader();
-      reader.onload = async function() {
-        try {
-          await db.ref(`users/${currentUser.uid}`).set({
-            uid: currentUser.uid,
-            nama,
-            umur,
-            bio,
-            gender,
-            foto: reader.result,
-            isPro: false,
-            email: currentUser.email,
-            lastOnline: Date.now(),
-            pesanCount: 0,
-            createdAt: Date.now()
-          });
-          el('modal-profil').classList.remove('active');
-          location.reload();
-        } catch (e) {
-          alert('Error saving profile: ' + e.message);
-        }
-      };
-      reader.readAsDataURL(file);
-    };
-
-    // ============= BOTTOM NAVIGATION =============
-    qs('nav#bottom-nav button').forEach(btn => {
-      btn.onclick = function() {
-        const navName = this.dataset.nav;
-        
-        // Update active button
-        qs('nav#bottom-nav button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        // Update active page
-        qs('.nav-page').forEach(p => p.classList.remove('active'));
-        el(navName).classList.add('active');
-        
-        // Load content
-        if (navName === 'timeline') loadTimeline();
-        if (navName === 'temukan') loadTemukan();
-        if (navName === 'pesan') loadRoom();
-        if (navName === 'profil') loadProfil();
-      };
-    });
-
-    // ============= TIMELINE (STATUS) =============
-    el('status-input').addEventListener('input', function() {
-      el('char-count').textContent = `${this.value.length}/150`;
-    });
-
-    async function canPostStatus() {
-      try {
-        const snap = await db.ref('statuses')
-          .orderByChild('uid')
-          .equalTo(currentUser.uid)
-          .limitToLast(1)
-          .once('value');
-        
-        let recent = null;
-        snap.forEach(d => {
-          const val = d.val();
-          if (!recent || val.createdAt > recent.createdAt) {
-            recent = val;
-          }
-        });
-        
-        if (!recent) return true;
-        return (Date.now() - recent.createdAt) > STATUS_INTERVAL;
-      } catch (e) {
-        alert('Error checking status: ' + e.message);
-        return false;
-      }
-    }
-
-    el('form-status').onsubmit = async function(e) {
-      e.preventDefault();
-      
-      const status = el('status-input').value.trim();
-      if (!status) return;
-      
-      if (!await canPostStatus()) {
-        alert('⏳ Status hanya bisa dikirim 1x per 6 jam. Coba lagi nanti!');
-        return;
-      }
-      
-      try {
-        const id = db.ref().child('statuses').push().key;
-        const now = Date.now();
-        
-        await db.ref(`statuses/${id}`).set({
-          id,
-          uid: currentUser.uid,
-          status,
-          createdAt: now,
-          autoDeleteAt: now + STATUS_TTL,
-          nama: currentProfile.nama,
-          foto: currentProfile.foto
-        });
-        
-        el('status-input').value = '';
-        el('char-count').textContent = '0/150';
-        alert('Status berhasil dipublikasikan!');
-        loadTimeline();
-      } catch (e) {
-        alert('Error posting status: ' + e.message);
-      }
-    };
-
-    async function loadTimeline() {
-      try {
-        el('status-list').innerHTML = '<p style="text-align:center;color:#999;">Loading...</p>';
-        
-        const snap = await db.ref('statuses').once('value');
-        let arr = [];
-        
-        snap.forEach(d => {
-          const s = d.val();
-          if (s.autoDeleteAt > Date.now()) {
-            arr.push(s);
-          }
-        });
-        
-        arr.sort((a, b) => b.createdAt - a.createdAt);
-        
-        if (arr.length === 0) {
-          el('status-list').innerHTML = '<p style="text-align:center;color:#999;">Belum ada status</p>';
-          return;
-        }
-        
-        el('status-list').innerHTML = '';
-        arr.forEach(s => {
-          const html = `
-            <div class="status-item">
-              <div class="status-header">
-                <img src="${s.foto || ''}" alt="Avatar"/>
-                <div>
-                  <b>${s.nama || 'User'}</b><br/>
-                  <small>${timeAgo(s.createdAt)}</small>
-                </div>
-              </div>
-              <div class="status-text">${escapeHtml(s.status)}</div>
-            </div>
-          `;
-          el('status-list').innerHTML += html;
-        });
-      } catch (e) {
-        alert('Error loading timeline: ' + e.message);
-      }
-    }
-
-    // ============= TEMUKAN (USERS ONLINE) =============
-    async function loadTemukan() {
-      try {
-        el('daftar-online').innerHTML = '<p style="text-align:center;color:#999;">Loading...</p>';
-        
-        const snap = await db.ref('users').once('value');
-        const now = Date.now();
-        let users = [];
-        
-        snap.forEach(s => {
-          const u = s.val();
-          // Online = lastOnline < 3 menit
-          if (u.lastOnline && (now - u.lastOnline) < 180000 && s.key !== currentUser.uid) {
-            users.push({ uid: s.key, ...u });
-          }
-        });
-        
-        if (users.length === 0) {
-          el('daftar-online').innerHTML = '<p style="text-align:center;color:#999;">Tidak ada pengguna online</p>';
-          return;
-        }
-        
-        el('daftar-online').innerHTML = '';
-        users.forEach(u => {
-          const badgeHtml = u.isPro 
-            ? '<span id="badge-pro">PRO</span>' 
-            : '<span style="color:#999;font-size:0.9rem;">Belum PRO</span>';
-          
-          const html = `
-            <div class="user-item">
-              <img src="${u.foto || ''}" alt="Avatar"/>
-              <b>${u.nama || 'User'}, ${u.umur || ''}</b>
-              <span>${u.gender || ''}</span>
-              <em>"${u.bio || ''}"</em>
-              <div>${badgeHtml}</div>
-              <button class="btn-primary" onclick="window.startChat('${u.uid}')">💬 Chat</button>
-            </div>
-          `;
-          el('daftar-online').innerHTML += html;
-        });
-      } catch (e) {
-        alert('Error loading users: ' + e.message);
-      }
-    }
-
-    window.startChat = async function(uid) {
-      if (uid === currentUser.uid) {
-        alert('Tidak bisa chat dengan diri sendiri!');
-        return;
-      }
-      
-      try {
-        const you = (await db.ref(`users/${currentUser.uid}`).once('value')).val();
-        
-        // Check pesan limit
-        if (!you.isPro && you.pesanCount >= PESAN_LIMIT) {
-          showModal(`
-            <h3>⭐ Upgrade PRO</h3>
-            <p>Anda sudah mencapai batas kirim pesan (${PESAN_LIMIT}x). Upgrade PRO untuk chat tak terbatas!</p>
-            <button class="btn-upgrade" onclick="el('upgrade-pro').click();closeModal();" style="width:100%;">Upgrade Sekarang</button>
-          `);
-          return;
-        }
-        
-        // Create room
-        const uids = [currentUser.uid, uid].sort();
-        const roomId = `${uids[0]}_${uids[1]}`;
-        
-        await db.ref(`userRooms/${currentUser.uid}/${roomId}`).set(true);
-        await db.ref(`userRooms/${uid}/${roomId}`).set(true);
-        
-        // Increment count if not pro
-        if (!you.isPro) {
-          await db.ref(`users/${currentUser.uid}/pesanCount`).set((you.pesanCount || 0) + 1);
-        }
-        
-        // Open chat
-        document.querySelector('nav#bottom-nav button[data-nav="pesan"]').click();
-        currentRoomId = roomId;
-        currentChatUid = uid;
-        openChat(roomId, uid);
-      } catch (e) {
-        alert('Error starting chat: ' + e.message);
-      }
-    };
-
-    // ============= PESAN (CHAT) =============
-    async function loadRoom() {
-      try {
-        el('daftar-room').innerHTML = '<p style="text-align:center;color:#999;">Loading...</p>';
-        el('chat-room').classList.add('hidden');
-        
-        const snap = await db.ref(`userRooms/${currentUser.uid}`).once('value');
-        const rooms = snap.val() || {};
-        
-        if (Object.keys(rooms).length === 0) {
-          el('daftar-room').innerHTML = '<p style="text-align:center;color:#999;">Belum ada chat. Temukan pengguna terlebih dahulu!</p>';
-          return;
-        }
-        
-        el('daftar-room').innerHTML = '';
-        
-        for (const roomId in rooms) {
-          const uids = roomId.split('_');
-          const uid = uids[0] === currentUser.uid ? uids[1] : uids[0];
-          const u = (await db.ref(`users/${uid}`).once('value')).val();
-          
-          const badgeHtml = u.isPro ? '<span id="badge-pro">PRO</span>' : '';
-          const html = `
-            <div class="room-item" onclick="window.openChat('${roomId}', '${uid}')">
-              <img src="${u.foto || ''}" alt="Avatar"/>
-              <div>
-                <b>${u.nama || 'User'}, ${u.umur || ''}</b>
-                <p style="font-size:0.9rem;color:#666;margin:0;">${u.bio || ''}</p>
-              </div>
-              <div>${badgeHtml}</div>
-            </div>
-          `;
-          el('daftar-room').innerHTML += html;
-        }
-      } catch (e) {
-        alert('Error loading rooms: ' + e.message);
-      }
-    }
-
-    window.openChat = async function(roomId, uid) {
-      try {
-        const u = (await db.ref(`users/${uid}`).once('value')).val();
-        el('chat-header').innerHTML = `<img src="${u.foto || ''}" alt="Avatar"/> <span>${u.nama || 'User'}, ${u.umur || ''}</span>`;
-        el('chat-room').classList.remove('hidden');
-        el('daftar-room').style.display = 'none';
-        
-        currentRoomId = roomId;
-        currentChatUid = uid;
-        
-        loadChatMessages(roomId);
-        
-        el('form-pesan').onsubmit = async function(e) {
-          e.preventDefault();
-          const isi = el('pesan-input').value.trim();
-          
-          if (isi === '') return;
-          
-          try {
-            const msgId = db.ref().child(`messages/${roomId}`).push().key;
-            await db.ref(`messages/${roomId}/${msgId}`).set({
-              from: currentUser.uid,
-              msg: escapeHtml(isi),
-              at: Date.now()
-            });
-            el('pesan-input').value = '';
-          } catch (e) {
-            alert('Error sending message: ' + e.message);
-          }
-        };
-      } catch (e) {
-        alert('Error opening chat: ' + e.message);
-      }
-    };
-
-    function loadChatMessages(roomId) {
-      db.ref(`messages/${roomId}`).off(); // Remove old listener
-      
-      db.ref(`messages/${roomId}`).on('value', snap => {
-        const msgs = [];
-        snap.forEach(d => msgs.push(d.val()));
-        msgs.sort((a, b) => a.at - b.at);
-        
-        let html = '';
-        msgs.forEach(m => {
-          const isMine = m.from === currentUser.uid;
-          const cls = isMine ? 'msg-from-me' : 'msg-from-other';
-          html += `
-            <div style="text-align: ${isMine ? 'right' : 'left'};">
-              <span class="msg ${cls}">${m.msg}</span>
-              <small style="color: #999; font-size: 0.8rem; display: block; margin-top: 2px;">${timeAgo(m.at)}</small>
-            </div>
-          `;
-        });
-        
-        el('chat-messages').innerHTML = html;
-        el('chat-messages').scrollTop = el('chat-messages').scrollHeight;
-      });
-    }
-
-    // ============= PROFIL =============
-    async function loadProfil() {
-      try {
-        const u = (await db.ref(`users/${currentUser.uid}`).once('value')).val();
-        el('profil-foto').src = u?.foto || '';
-        el('profil-nama').textContent = u?.nama || '';
-        el('profil-umur').textContent = u?.umur || '';
-        el('profil-gender').textContent = u?.gender || '';
-        el('profil-bio').textContent = u?.bio || '';
-        
-        if (u?.isPro) {
-          el('badge-pro').innerHTML = '<span id="badge-pro">⭐ PRO</span>';
-        } else {
-          el('badge-pro').innerHTML = '<span style="color:#999;">Belum PRO</span>';
-        }
-      } catch (e) {
-        alert('Error loading profile: ' + e.message);
-      }
-    }
-
-    // Upgrade PRO
-    el('upgrade-pro').onclick = () => {
-      showModal(`
-        <h3>⭐ Upgrade ke PRO</h3>
-        <p>Nikmati fitur kirim pesan <b>tak terbatas</b> dengan upgrade PRO!</p>
-        <p><b>Harga:</b> Rp10.000</p>
-        <p><a href="https://saweria.co/yourlink" target="_blank" class="btn-primary" style="display:inline-block;text-decoration:none;">Bayar via Saweria</a></p>
-        <hr/>
-        <h4>Setelah membayar:</h4>
-        <label>Email konfirmasi</label>
-        <input type="email" id="confirm-email" placeholder="Email Anda" value="${currentUser.email}"/>
-        <button class="btn-primary" onclick="window.confirmUpgradePro()">Konfirmasi & Aktivasi PRO</button>
-        <p style="font-size:0.9rem;color:#999;">⏳ Admin akan memverifikasi dalam 1x24 jam</p>
-      `);
-    };
-
-    window.confirmUpgradePro = async function() {
-      const email = el('confirm-email').value.trim();
-      if (!email) return alert('Masukkan email!');
-      
-      try {
-        await db.ref(`users/${currentUser.uid}`).update({
-          proEmail: email,
-          proRequestAt: Date.now()
-        });
-        
-        showModal(`
-          <h3>✅ Konfirmasi dikirim!</h3>
-          <p>Email <b>${email}</b> sudah terdaftar untuk upgrade PRO.</p>
-          <p>Admin akan memverifikasi pembayaran dan mengaktifkan akun Anda dalam 1x24 jam.</p>
-          <p>Cek email untuk notifikasi aktivasi.</p>
-        `);
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    };
-
-    // Edit Profil
-    el('edit-profil').onclick = () => {
-      showModal(`
-        <h3>✏️ Edit Profil</h3>
-        <label>Foto Profil (opsional)</label>
-        <input type="file" id="edit-foto" accept="image/*"/>
-        <label>Nama</label>
-        <input type="text" id="edit-nama" value="${currentProfile.nama}"/>
-        <label>Umur</label>
-        <input type="number" id="edit-umur" value="${currentProfile.umur}" min="10" max="99"/>
-        <label>Bio</label>
-        <textarea id="edit-bio">${currentProfile.bio}</textarea>
-        <label>Gender</label>
-        <select id="edit-gender">
-          <option value="pria" ${currentProfile.gender === 'pria' ? 'selected' : ''}>Pria</option>
-          <option value="wanita" ${currentProfile.gender === 'wanita' ? 'selected' : ''}>Wanita</option>
-        </select>
-        <button class="btn-primary" onclick="window.doEditProfil()" style="width:100%;">Simpan Perubahan</button>
-      `);
-    };
-
-    window.doEditProfil = async function() {
-      const nama = el('edit-nama').value.trim();
-      const umur = parseInt(el('edit-umur').value);
-      const bio = el('edit-bio').value.trim();
-      const gender = el('edit-gender').value;
-      const fotoFile = el('edit-foto').files[0];
-      
-      if (!nama || !umur || !bio || !gender) {
-        return alert('Lengkapi semua data!');
-      }
-      
-      try {
-        const updateData = { nama, umur, bio, gender };
-        
-        if (fotoFile) {
-          const reader = new FileReader();
-          reader.onload = async function() {
-            updateData.foto = reader.result;
-            await db.ref(`users/${currentUser.uid}`).update(updateData);
-            closeModal();
-            await loadProfil();
-            alert('Profil berhasil diperbarui!');
-          };
-          reader.readAsDataURL(fotoFile);
-        } else {
-          await db.ref(`users/${currentUser.uid}`).update(updateData);
-          closeModal();
-          await loadProfil();
-          alert('Profil berhasil diperbarui!');
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    };
-
-    // ============= EXTRA MENUS =============
-    el('btn-perhatian').onclick = () => {
-      showModal(`
-        <h3>⚠️ Penting - Jaga Privasi Anda</h3>
-        <ul>
-          <li>🔐 Jaga identitas dan privasi Anda dari orang asing</li>
-          <li>🚫 Jangan bagikan data sensitif (nomor, alamat, password)</li>
-          <li>📸 Hati-hati dengan permintaan foto pribadi</li>
-          <li>🚩 Laporkan pengguna yang mencurigakan atau mengganggu</li>
-          <li>✅ Gunakan nickname jika perlu perlindungan privasi ekstra</li>
-          <li>⏰ Batasi waktu chat dengan orang yang belum dikenal</li>
-        </ul>
-        <p style="color: #999; font-size: 0.9rem;">ChatMe memprioritaskan keamanan dan kenyamanan Anda.</p>
-      `);
-    };
-
-    el('btn-tentang').onclick = () => {
-      showModal(`
-        <h3>ℹ️ Tentang ChatMe</h3>
-        <p><b>ChatMe</b> adalah aplikasi chat modern berbasis PWA yang dirancang untuk saling terhubung dengan aman dan nyaman.</p>
-        <hr/>
-        <h4>Fitur Utama:</h4>
-        <ul>
-          <li>✅ Chat realtime dengan user online</li>
-          <li>✅ Status publik (auto-delete 24 jam)</li>
-          <li>✅ Dark mode & UI modern</li>
-          <li>✅ Upgrade PRO untuk chat unlimited</li>
-          <li>✅ Installable sebagai aplikasi native</li>
-        </ul>
-        <hr/>
-        <p><b>by Mocharetta Dev, LLC.</b></p>
-        <p>Version 1.0.0 | Built with ❤️</p>
-      `);
-    };
-
-    el('btn-laporkan').onclick = () => {
-      showModal(`
-        <h3>🚩 Laporkan Masalah</h3>
-        <p>Temukan bug, konten berbahaya, atau pengguna melanggar? Laporkan kepada admin.</p>
-        <label>Tipe Laporan</label>
-        <select id="report-type">
-          <option value="">Pilih tipe</option>
-          <option value="user">Pengguna mencurigakan</option>
-          <option value="konten">Konten melanggar S&K</option>
-          <option value="bug">Laporan bug/error</option>
-          <option value="lainnya">Lainnya</option>
-        </select>
-        <label>Deskripsi Laporan</label>
-        <textarea id="report-desc" placeholder="Jelaskan detail laporan..." style="min-height:100px;"></textarea>
-        <button class="btn-primary" onclick="window.kirimLaporan()" style="width:100%;">Kirim Laporan</button>
-      `);
-    };
-
-    window.kirimLaporan = async function() {
-      const type = el('report-type').value;
-      const desc = el('report-desc').value.trim();
-      
-      if (!type || !desc) {
-        return alert('Lengkapi semua data!');
-      }
-      
-      try {
-        await db.ref('reports').push({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          nama: currentProfile.nama,
-          type,
-          desc,
-          timestamp: Date.now()
-        });
-        
-        showModal(`
-          <h3>✅ Laporan Terkirim</h3>
-          <p>Terima kasih! Laporan Anda telah diterima dan akan ditinjau oleh admin dalam waktu singkat.</p>
-        `);
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    };
-
-    // ============= AKUN =============
-    el('btn-hapus-akun').onclick = () => {
-      if (confirm('⚠️ Yakin ingin HAPUS akun? Ini TIDAK BISA dikembalikan!\n\nSemua data (chat, status, profil) akan dihapus permanen.')) {
-        try {
-          db.ref(`users/${currentUser.uid}`).remove();
-          db.ref(`userRooms/${currentUser.uid}`).remove();
-          auth.currentUser.delete().then(() => {
-            alert('Akun berhasil dihapus.');
-            location.reload();
-          });
-        } catch (e) {
-          alert('Error: ' + e.message);
-        }
-      }
-    };
-
-    el('btn-keluar').onclick = () => {
-      if (confirm('Yakin ingin keluar?')) {
-        auth.signOut().then(() => location.reload());
-      }
-    };
-
-    // ============= UTILITIES =============
-    function timeAgo(ts) {
-      const diff = (Date.now() - ts) / 1000;
-      if (diff < 60) return `${Math.floor(diff)}d`;
-      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)}j`;
-      if (diff < 604800) return `${Math.floor(diff / 86400)}h`;
-      return `${Math.floor(diff / 604800)}w`;
-    }
-
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // ============= AUTO-CLEAN STATUS (Local Polling) =============
-    setInterval(async () => {
-      try {
-        const snap = await db.ref('statuses').once('value');
-        snap.forEach(d => {
-          const s = d.val();
-          if (s.autoDeleteAt < Date.now()) {
-            db.ref(`statuses/${d.key}`).remove();
-          }
-        });
-      } catch (e) {
-        console.log('Auto-clean error:', e);
-      }
-    }, 600000); // 10 menit
-
-    // ============= APP START =============
-    function onAppStart() {
-      el('splash').style.display = 'none';
-      el('main-app').classList.remove('hidden');
-      
-      // Load timeline on start
-      document.querySelector('nav#bottom-nav button[data-nav="timeline"]').click();
-    }
-  </script>
 </body>
 </html>
